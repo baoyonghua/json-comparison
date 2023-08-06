@@ -19,8 +19,17 @@ public class JsonObjectComparator extends AbstractJsonComparator<ObjectNode> {
 
     @Override
     public List<BriefDiffResult.BriefDiff> compare(CompareParams<ObjectNode> params) {
+        BriefDiffResult.BriefDiff diff;
+        ObjectNode actual = params.getActual();
+        ObjectNode expected = params.getExpected();
+        // 如果两个类型不一致则不予对比, 直接返回
+        String currentPath = params.getCurrentPath();
+        diff = checkJsonNodeType(currentPath, actual, expected);
+        if (Objects.nonNull(diff)) {
+            return Collections.singletonList(diff);
+        }
         ArrayList<BriefDiffResult.BriefDiff> diffs = new ArrayList<>();
-        Iterator<Map.Entry<String, JsonNode>> actualFields = params.getActual().fields();
+        Iterator<Map.Entry<String, JsonNode>> actualFields = actual.fields();
         //以实际的字段为基准进行对比
         while (actualFields.hasNext()) {
             Map.Entry<String, JsonNode> field = actualFields.next();
@@ -30,7 +39,7 @@ public class JsonObjectComparator extends AbstractJsonComparator<ObjectNode> {
                 // 根据上一次的path获取源预期的object json
                 ObjectNode node = getObjectNodeByPath(compareParams.getOriginalExcepetd(), compareParams.getPrevPath());
                 if (!ListUtil.list(false, node.fieldNames()).contains(field.getKey())) {
-                    BriefDiffResult.BriefDiff diff = BriefDiffResult.BriefDiff.builder()
+                    diff = BriefDiffResult.BriefDiff.builder()
                             .diffKey(compareParams.getCurrentPath())
                             .reason(String.format(CompareMessageConstant.EXPECTED_MISS_KEY, field.getKey()))
                             .actual(compareParams.getActual().toString())
@@ -68,7 +77,7 @@ public class JsonObjectComparator extends AbstractJsonComparator<ObjectNode> {
             if (!actualFieldNameList.contains(fieldName)) {
                 BriefDiffResult.BriefDiff diff = BriefDiffResult.BriefDiff.builder()
                         .diffKey(params.getCurrentPath() + "." + fieldName)
-                        .reason(String.format(CompareMessageConstant.ACTUAL_MISS_KEY, fieldName) )
+                        .reason(String.format(CompareMessageConstant.ACTUAL_MISS_KEY, fieldName))
                         .actual("key miss!!")
                         .expected(params.getExpected().get(fieldName).toString())
                         .build();

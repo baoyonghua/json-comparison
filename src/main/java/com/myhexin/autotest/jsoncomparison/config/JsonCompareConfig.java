@@ -6,6 +6,7 @@ import lombok.EqualsAndHashCode;
 
 import java.io.Serializable;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -49,11 +50,44 @@ public class JsonCompareConfig implements Serializable {
          * 容差
          */
         private String toleant;
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (!(o instanceof ExcapedJson)) {
+                return false;
+            }
+            ExcapedJson other = (ExcapedJson) o;
+            return Objects.equals(path, other.path);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(path);
+        }
     }
 
-    @EqualsAndHashCode(callSuper = true)
     @Data
     public static class ExcapedJson extends JsonCompareConfig {
         private String path;
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (!(o instanceof ExcapedJson)) {
+                return false;
+            }
+            ExcapedJson other = (ExcapedJson) o;
+            return Objects.equals(path, other.path);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(path);
+        }
     }
 }

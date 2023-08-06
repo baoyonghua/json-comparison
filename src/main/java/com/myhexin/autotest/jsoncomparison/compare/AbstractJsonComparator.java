@@ -38,12 +38,11 @@ public abstract class AbstractJsonComparator<T extends JsonNode> implements Json
             String path, JsonNode actual, JsonNode expected) {
         // 如果俩个jsonNode对象的type不一致则需要校验
         if (actual.getNodeType() != expected.getNodeType()) {
-            log.warn("当前两个Json对象的类型不匹配, 无法参与对比！");
             String reason;
             if (actual.getNodeType() == JsonNodeType.NULL) {
-                reason = CompareMessageConstant.ONLY_IN_EXPECTED;
+                reason = String.format(CompareMessageConstant.ONLY_IN_EXPECTED, expected.asText());
             } else if (expected.getNodeType() == JsonNodeType.NULL) {
-                reason = CompareMessageConstant.ONLY_IN_ACTUAL;
+                reason = String.format(CompareMessageConstant.ONLY_IN_ACTUAL, actual.asText());
             } else {
                 reason = String.format(
                         CompareMessageConstant.TYPE_UNEQUALS, actual.getNodeType(), expected.getNodeType()

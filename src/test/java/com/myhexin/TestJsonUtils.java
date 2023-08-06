@@ -144,10 +144,7 @@ public class TestJsonUtils {
     public void test02() {
         JsonNode actual = JsonUtils.getJsonNode(ACTUAL);
         JsonNode excepted = JsonUtils.getJsonNode(EXCEPTED);
-
         JsonCompareConfig config = new JsonCompareConfig();
-        config.setIgnorePath(new HashSet<>());
-        config.setExcapedJsonPath(new HashSet<>());
         CompareParams<JsonNode> params = CompareParams.<JsonNode>builder()
                 .actual(actual)
                 .expected(excepted)
@@ -158,6 +155,4 @@ public class TestJsonUtils {
                 .execute(JsonNodeType.OBJECT, params);
         diffs.forEach(System.out::println);
     }
-
-
 }
