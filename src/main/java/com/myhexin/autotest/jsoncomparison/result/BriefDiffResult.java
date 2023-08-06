@@ -25,5 +25,7 @@ public class BriefDiffResult implements Serializable {
         private String diffKey;
 
         private String reason;
+
+        private List<BriefDiff> subDiffs;
     }
 }

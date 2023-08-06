@@ -9,9 +9,6 @@ import com.myhexin.autotest.jsoncomparison.result.BriefDiffResult;
 import com.myhexin.autotest.jsoncomparison.utils.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.Objects;
-import java.util.Set;
-
 
 /**
  * JSON对比器抽象实现
@@ -22,15 +19,10 @@ import java.util.Set;
 @Slf4j
 public abstract class AbstractJsonComparator<T extends JsonNode> implements JsonComparator<T> {
 
-    protected static final String ROOT_PATH = "root";
-
     @Override
     public void beforeCompare(CompareParams<T> params) {
-        if (isIgnorePath(params.getCurrentPath(), params.getConfig().getIgnorePath())) {
-            return;
-        }
         if (CharSequenceUtil.isBlank(params.getCurrentPath())) {
-            params.setCurrentPath(ROOT_PATH);
+            params.setCurrentPath(JsonComparator.ROOT_PATH);
         }
     }
 
@@ -67,19 +59,6 @@ public abstract class AbstractJsonComparator<T extends JsonNode> implements Json
         return null;
     }
 
-    /**
-     * 是否是需要忽略的path
-     *
-     * @param path        当前path
-     * @param ignorePaths
-     * @return
-     */
-    protected boolean isIgnorePath(String path, Set<String> ignorePaths) {
-        path = cropPath2JmesPath(path);
-        return Objects.nonNull(ignorePaths) && !ignorePaths.isEmpty()
-                && !ignorePaths.contains(path);
-    }
-
     @Override
     public void afterCompare() {
 
@@ -96,7 +75,7 @@ public abstract class AbstractJsonComparator<T extends JsonNode> implements Json
         if (CharSequenceUtil.isBlank(path)) {
             return JsonUtils.getJsonNode(jsonStr);
         }
-        String jmesPath = cropPath2JmesPath(path);
+        String jmesPath = JsonComparator.cropPath2JmesPath(path);
         if (CharSequenceUtil.isBlank(jmesPath)) {
             return JsonUtils.getJsonNode(jsonStr);
         }
@@ -110,24 +89,4 @@ public abstract class AbstractJsonComparator<T extends JsonNode> implements Json
         }
         throw new IllegalArgumentException("该Json不是对象！当前类型: " + node.getNodeType());
     }
-
-    /**
-     * 将Path转换为实际的jmesPath
-     *
-     * @param path 内部path
-     * @return
-     */
-    private String cropPath2JmesPath(String path) {
-        if (CharSequenceUtil.isBlank(path)) {
-            return path;
-        }
-        if (path.length() == ROOT_PATH.length()) {
-            return "";
-        }
-        if (path.startsWith(ROOT_PATH)) {
-            path = path.substring(ROOT_PATH.length() + 1);
-        }
-        return path;
-    }
-
 }

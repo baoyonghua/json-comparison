@@ -2,8 +2,10 @@ package com.myhexin.autotest.jsoncomparison.config;
 
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.io.Serializable;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -18,22 +20,22 @@ public class JsonCompareConfig implements Serializable {
     /**
      * 需要忽略对比的字段路径集合
      */
-    private Set<String> ignorePath;
+    private Set<String> ignorePath = new HashSet<>();
 
     /**
      * 需要忽略顺序的数组对比路径集合 --> 支持乱序
      */
-    private Set<String> arrayWithDisorderPath;
+    private Set<String> arrayWithDisorderPath = new HashSet<>();
 
     /**
      * 需要进行Json转义进行对比的路径集合
      */
-    private Set<JsonCompareConfig> excapedJsonPath;
+    private Set<ExcapedJson> excapedJsonPath = new HashSet<>();
 
     /**
      * 需要忽略容差的路径集合
      */
-    private Set<ToleantConfig> toleantPath;
+    private Set<ToleantConfig> toleantPath = new HashSet<>();
 
     @Data
     public static class ToleantConfig implements Serializable {
@@ -47,5 +49,11 @@ public class JsonCompareConfig implements Serializable {
          * 容差
          */
         private String toleant;
+    }
+
+    @EqualsAndHashCode(callSuper = true)
+    @Data
+    public static class ExcapedJson extends JsonCompareConfig {
+        private String path;
     }
 }

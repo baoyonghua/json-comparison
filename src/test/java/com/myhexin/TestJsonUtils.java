@@ -34,73 +34,95 @@ public class TestJsonUtils {
             "}\n";
 
     private static final String ACTUAL = "{\n" +
-            "  \"name\": \"John Doe\",\n" +
-            "  \"age\": 30,\n" +
-            "  \"email\": \"johndoe@example.com\",\n" +
-            "  \"address\": {\n" +
-            "    \"street\": \"123 Main St\",\n" +
-            "    \"city\": \"New York\",\n" +
-            "    \"state\": \"NY\"\n" +
-            "  },\n" +
-            "  \"phone_numbers\": [\n" +
-            "    \"123-456-7891\",\n" +
-            "    \"987-654-3210\"\n" +
-            "  ],\n" +
-            "  \"interests\": [\n" +
-            "    \"Sports\",\n" +
-            "    \"Music\",\n" +
-            "    \"Travel\"\n" +
-            "  ],\n" +
-            "  \"education\": {\n" +
-            "    \"degree\": \"Bachelor's\",\n" +
-            "    \"university\": \"ABC University\"\n" +
-            "  },\n" +
-            "  \"friends\": [\n" +
+            "  \"employees\": [\n" +
+            "    {\n" +
+            "      \"name\": \"John Doe\",\n" +
+            "      \"age\": 30,\n" +
+            "      \"skills\": [\n" +
+            "        {\n" +
+            "          \"language\": \"Python\",\n" +
+            "          \"level\": \"Intermediate\"\n" +
+            "        },\n" +
+            "        {\n" +
+            "          \"language\": \"JavaScript\",\n" +
+            "          \"level\": \"Advanced\"\n" +
+            "        }\n" +
+            "      ]\n" +
+            "    },\n" +
             "    {\n" +
             "      \"name\": \"Jane Smith\",\n" +
             "      \"age\": 28,\n" +
-            "      \"email\": \"janesmith@example.com\"\n" +
+            "      \"skills\": [\n" +
+            "        {\n" +
+            "          \"language\": \"Java\",\n" +
+            "          \"level\": \"Advanced\"\n" +
+            "        },\n" +
+            "        {\n" +
+            "          \"language\": \"C++\",\n" +
+            "          \"level\": \"Intermediate\"\n" +
+            "        }\n" +
+            "      ]\n" +
             "    },\n" +
             "    {\n" +
             "      \"name\": \"Bob Johnson\",\n" +
             "      \"age\": 32,\n" +
-            "      \"email\": \"bobjohnson@example.com\"\n" +
+            "      \"skills\": [\n" +
+            "        {\n" +
+            "          \"language\": \"Ruby\",\n" +
+            "          \"level\": \"Intermediate\"\n" +
+            "        },\n" +
+            "        {\n" +
+            "          \"language\": \"PHP\",\n" +
+            "          \"level\": \"Advanced\"\n" +
+            "        }\n" +
+            "      ]\n" +
             "    }\n" +
             "  ]\n" +
             "}";
 
     private static final String EXCEPTED = "{\n" +
-            "  \"name\": \"John Doe\",\n" +
-            "  \"age\": 30,\n" +
-            "  \"email\": \"johndoe@example.com\",\n" +
-            "  \"address\": {\n" +
-            "    \"street\": \"123 Main St\",\n" +
-            "    \"city\": \"New York\",\n" +
-            "    \"state\": \"NY\"\n" +
-            "  },\n" +
-            "  \"phone_numbers\": [\n" +
-            "    \"123-456-7890\",\n" +
-            "    \"987-654-3210\"\n" +
-            "  ],\n" +
-            "  \"interests\": [\n" +
-            "    \"Sports\",\n" +
-            "    \"Music\",\n" +
-            "    \"Travel\"\n" +
-            "  ],\n" +
-            "  \"education\": {\n" +
-            "    \"degree\": \"Bachelor's\",\n" +
-            "    \"university\": \"ABC University\"\n" +
-            "  },\n" +
-            "  \"friends\": [\n" +
+            "  \"employees\": [\n" +
+            "    {\n" +
+            "      \"name\": \"John Doe\",\n" +
+            "      \"age\": 30,\n" +
+            "      \"skills\": [\n" +
+            "        {\n" +
+            "          \"language\": \"Python\",\n" +
+            "          \"level\": \"Intermediate\"\n" +
+            "        },\n" +
+            "        {\n" +
+            "          \"language\": \"JavaScript\",\n" +
+            "          \"level\": \"Advanced\"\n" +
+            "        }\n" +
+            "      ]\n" +
+            "    },\n" +
             "    {\n" +
             "      \"name\": \"Jane Smith\",\n" +
             "      \"age\": 28,\n" +
-            "      \"email\": \"janesmith@example.com\"\n" +
+            "      \"skills\": [\n" +
+            "        {\n" +
+            "          \"language\": \"Java\",\n" +
+            "          \"level\": \"Advanced\"\n" +
+            "        },\n" +
+            "        {\n" +
+            "          \"language\": \"C++\",\n" +
+            "          \"level\": \"Intermediate\"\n" +
+            "        }\n" +
+            "      ]\n" +
             "    },\n" +
             "    {\n" +
             "      \"name\": \"Bob Johnson\",\n" +
             "      \"age\": 32,\n" +
-            "      \"email\": \"bobjohnson@example.com\"\n" +
+            "      \"skills\": [\n" +
+            "        {\n" +
+            "          \"language\": \"Ruby\",\n" +
+            "          \"level\": \"Intermediate\"\n" +
+            "        },\n" +
+            "        {\n" +
+            "          \"language\": \"PHP1\",\n" +
+            "          \"level\": \"Advanced\"\n" +
+            "        }\n" +
+            "      ]\n" +
             "    }\n" +
             "  ]\n" +
             "}";
@@ -133,7 +155,7 @@ public class TestJsonUtils {
                 .config(config)
                 .build();
         List<BriefDiffResult.BriefDiff> diffs = JsonComparatorFactory.build()
-                .executeContrast(JsonNodeType.OBJECT, params);
+                .execute(JsonNodeType.OBJECT, params);
         diffs.forEach(System.out::println);
     }
 

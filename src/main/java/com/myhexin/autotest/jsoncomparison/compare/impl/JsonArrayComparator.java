@@ -35,11 +35,11 @@ public class JsonArrayComparator extends AbstractJsonComparator<ArrayNode> {
         }
         int actualSize = actual.size();
         int expectedSize = expected.size();
-        log.info("开始两个数组类型对象的Json对比操作...");
         // 乱序时不支持长度不一致的对比
         if (params.getConfig().getIgnorePath().contains(currentPath)) {
             log.info("当前路径[{}]配置了支持乱序的数组对比...", currentPath);
             if (actualSize != expectedSize) {
+                log.warn("不支持乱序时进行长度不一致的数组对比！");
                 diff = BriefDiffResult.BriefDiff.builder()
                         .actual(actual.asText())
                         .expected(expected.asText())
@@ -97,10 +97,6 @@ public class JsonArrayComparator extends AbstractJsonComparator<ArrayNode> {
         return diffs;
     }
 
-    protected String buildPath(String oldPath, int index) {
-        return oldPath + "[" + index + "]";
-    }
-
     @Override
     public String toString() {
         return "Json数组对比器";
@@ -119,25 +115,6 @@ public class JsonArrayComparator extends AbstractJsonComparator<ArrayNode> {
                 .prevPath(params.getCurrentPath())
                 .actual(actualJsonNode)
                 .expected(expectedJsonNode)
-                .originalExcepetd(params.getOriginalExcepetd())
-                .config(params.getConfig())
-                .build();
-    }
-
-    /**
-     * 构建对比时所必须的参数
-     *
-     * @param params
-     * @return
-     */
-    private CompareParams<JsonNode> bulidCompareParams(
-            CompareParams<ArrayNode> params, int index, JsonNode actualJsonNode) {
-        String path = buildPath(params.getCurrentPath(), index);
-        return CompareParams.<JsonNode>builder()
-                .currentPath(path)
-                .prevPath(params.getCurrentPath())
-                .actual(actualJsonNode)
-                .expected(getJsonNodeByPath(params.getOriginalExcepetd(), path))
                 .originalExcepetd(params.getOriginalExcepetd())
                 .config(params.getConfig())
                 .build();

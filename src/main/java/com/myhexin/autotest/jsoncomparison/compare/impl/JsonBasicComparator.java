@@ -5,13 +5,15 @@ import com.fasterxml.jackson.databind.node.JsonNodeType;
 import com.myhexin.autotest.jsoncomparison.compare.AbstractJsonComparator;
 import com.myhexin.autotest.jsoncomparison.compare.CompareParams;
 import com.myhexin.autotest.jsoncomparison.compare.constant.CompareMessageConstant;
+import com.myhexin.autotest.jsoncomparison.compare.factory.JsonComparatorFactory;
+import com.myhexin.autotest.jsoncomparison.config.JsonCompareConfig;
 import com.myhexin.autotest.jsoncomparison.result.BriefDiffResult;
+import com.myhexin.autotest.jsoncomparison.utils.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.math.BigDecimal;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 基础的JSON对比器，提供默认的对比规则
@@ -27,7 +29,8 @@ public class JsonBasicComparator extends AbstractJsonComparator<JsonNode> {
     public List<BriefDiffResult.BriefDiff> compare(CompareParams<JsonNode> params) {
         JsonNode actual = params.getActual();
         JsonNode expected = params.getExpected();
-        BriefDiffResult.BriefDiff diff = checkJsonNodeType(params.getCurrentPath(), actual, expected);
+        BriefDiffResult.BriefDiff diff =
+                checkJsonNodeType(params.getCurrentPath(), actual, expected);
         if (Objects.nonNull(diff)) {
             return Collections.singletonList(diff);
         }
@@ -40,11 +43,64 @@ public class JsonBasicComparator extends AbstractJsonComparator<JsonNode> {
                 pass = true;
                 break;
             case NUMBER:
-                pass = (actual.asLong() == expected.asLong());
+                BigDecimal actualNumber = new BigDecimal(actualText);
+                BigDecimal expectedNumber = new BigDecimal(expectedText);
+                // 判断是否允许容差
+                for (JsonCompareConfig.ToleantConfig toleantConfig : params.getConfig().getToleantPath()) {
+                    if (toleantConfig.getPath().equals(params.getCurrentPath())) {
+                        BigDecimal toleant = new BigDecimal(toleantConfig.getToleant());
+                        BigDecimal max = actualNumber.add(toleant);
+                        BigDecimal min = actualNumber.subtract(toleant);
+                        if (max.compareTo(expectedNumber) < 0 || min.compareTo(expectedNumber) > 0) {
+                            diff = BriefDiffResult.BriefDiff.builder()
+                                    .actual(actualText)
+                                    .expected(expectedText)
+                                    .diffKey(params.getCurrentPath())
+                                    .reason(String.format(
+                                            CompareMessageConstant.VALUE_NOTEQUALS_WITH_TOLEANT,
+                                            toleant.toString(),
+                                            actual,
+                                            expected)
+                                    )
+                                    .build();
+                            return Collections.singletonList(diff);
+                        }
+                    }
+                }
+                pass = actualNumber.compareTo(expectedNumber) == 0;
                 break;
             case STRING:
             case BINARY:
-                pass = (actualText.equals(expectedText));
+                Set<JsonCompareConfig.ExcapedJson> excapedJsons = params.getConfig().getExcapedJsonPath();
+                if (excapedJsons.isEmpty()) {
+                    pass = (actualText.equals(expectedText));
+                    break;
+                }
+                for (JsonCompareConfig.ExcapedJson excapedJson : excapedJsons) {
+                    if (excapedJson.getPath().equals(params.getCurrentPath())) {
+                        // 需要进行转义对比的字符串
+                        JsonNode jsonNode1 = JsonUtils.getJsonNode(actualText);
+                        JsonNode jsonNode2 = JsonUtils.getJsonNode(expectedText);
+                        CompareParams<JsonNode> compareParams = CompareParams.<JsonNode>builder()
+                                .actual(jsonNode1)
+                                .expected(jsonNode2)
+                                .originalExcepetd(expectedText)
+                                .config(excapedJson)
+                                .build();
+                        List<BriefDiffResult.BriefDiff> diffs = JsonComparatorFactory.build()
+                                .executeContrast(jsonNode1.getNodeType(), compareParams);
+                        if (!diffs.isEmpty()) {
+                            diff = BriefDiffResult.BriefDiff.builder()
+                                    .actual(actualText)
+                                    .expected(expectedText)
+                                    .diffKey(params.getCurrentPath())
+                                    .reason(CompareMessageConstant.EXCAPED_COMPARE_NOT_EQUALS)
+                                    .subDiffs(diffs)
+                                    .build();
+                            return Collections.singletonList(diff);
+                        }
+                    }
+                }
                 break;
             case BOOLEAN:
                 pass = (actual.asBoolean() == expected.asBoolean());
