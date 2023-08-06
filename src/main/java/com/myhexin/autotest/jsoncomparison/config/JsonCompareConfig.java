@@ -21,7 +21,7 @@ public class JsonCompareConfig implements Serializable {
     private Set<String> ignorePath;
 
     /**
-     * 需要忽略顺序的数组对比路径集合
+     * 需要忽略顺序的数组对比路径集合 --> 支持乱序
      */
     private Set<String> arrayWithDisorderPath;
 

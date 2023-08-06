@@ -39,7 +39,7 @@ public class CompareParams<T> implements Serializable {
     private String originalExcepetd;
 
     /**
-     * 预期的结果
+     * 预期Json
      */
     private T expected;
 

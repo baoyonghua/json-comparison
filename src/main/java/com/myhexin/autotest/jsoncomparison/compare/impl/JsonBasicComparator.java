@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * 基础的JSON对比器，提供默认的对比规则
@@ -24,18 +25,15 @@ public class JsonBasicComparator extends AbstractJsonComparator<JsonNode> {
 
     @Override
     public List<BriefDiffResult.BriefDiff> compare(CompareParams<JsonNode> params) {
-        if (isIgnorePath(params.getCurrentPath(), params.getConfig().getIgnorePath())) {
-            return Collections.emptyList();
-        }
-
         JsonNode actual = params.getActual();
         JsonNode expected = params.getExpected();
-        List<BriefDiffResult.BriefDiff> diffs = checkType(params, actual, expected);
-        if (!diffs.isEmpty()) {
-            return diffs;
+        BriefDiffResult.BriefDiff diff = checkJsonNodeType(params.getCurrentPath(), actual, expected);
+        if (Objects.nonNull(diff)) {
+            return Collections.singletonList(diff);
         }
         boolean pass = false;
         switch (actual.getNodeType()) {
+            // 如果实际为null则预期也一定为null
             case NULL:
                 pass = true;
                 break;
@@ -54,7 +52,7 @@ public class JsonBasicComparator extends AbstractJsonComparator<JsonNode> {
         }
         if (!pass) {
             String reason = CompareMessageConstant.UNEQUALS;
-            BriefDiffResult.BriefDiff diff = BriefDiffResult.BriefDiff.builder()
+            diff = BriefDiffResult.BriefDiff.builder()
                     .actual(actual.asText())
                     .expected(expected.asText())
                     .diffKey(params.getCurrentPath())
@@ -63,40 +61,6 @@ public class JsonBasicComparator extends AbstractJsonComparator<JsonNode> {
             return Collections.singletonList(diff);
         }
         return Collections.emptyList();
-    }
-
-    private List<BriefDiffResult.BriefDiff> checkType(CompareParams<JsonNode> params, JsonNode actual, JsonNode expected) {
-        if (actual.getNodeType() != expected.getNodeType()) {
-            String reason;
-            if (actual.getNodeType() == JsonNodeType.NULL) {
-                reason = CompareMessageConstant.ONLY_IN_EXPECTED;
-            } else if (expected.getNodeType() == JsonNodeType.NULL) {
-                reason = CompareMessageConstant.ONLY_IN_ACTUAL;
-            } else {
-                reason = CompareMessageConstant.UNEQUALS;
-            }
-            BriefDiffResult.BriefDiff diff = BriefDiffResult.BriefDiff.builder()
-                    .actual(actual.asText())
-                    .expected(expected.asText())
-                    .diffKey(params.getCurrentPath())
-                    .reason(reason)
-                    .build();
-            return Collections.singletonList(diff);
-        }
-        return Collections.emptyList();
-    }
-
-    /**
-     * 如果节点不属于数组、对象则默认属于普通类型
-     *
-     * @param node json中的某一个节点
-     * @return
-     */
-    @Override
-    protected boolean check(JsonNode node) {
-        List<JsonNodeType> nodeTypes =
-                Arrays.asList(JsonNodeType.ARRAY, JsonNodeType.OBJECT, JsonNodeType.POJO);
-        return !nodeTypes.contains(node.getNodeType());
     }
 
     @Override
