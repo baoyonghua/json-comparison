@@ -36,8 +36,9 @@ public abstract class AbstractJsonComparator<T extends JsonNode> implements Json
 
     /**
      * 校验两个JsonType的类型是否一致
-     * @param path 当前路径
-     * @param actual 实际的Json
+     *
+     * @param path     当前路径
+     * @param actual   实际的Json
      * @param expected 预期的Json
      * @return
      */
@@ -52,7 +53,9 @@ public abstract class AbstractJsonComparator<T extends JsonNode> implements Json
             } else if (expected.getNodeType() == JsonNodeType.NULL) {
                 reason = CompareMessageConstant.ONLY_IN_ACTUAL;
             } else {
-                reason = String.format(CompareMessageConstant.UNEQUALS, actual.getNodeType(), expected.getNodeType());
+                reason = String.format(
+                        CompareMessageConstant.TYPE_UNEQUALS, actual.getNodeType(), expected.getNodeType()
+                );
             }
             return BriefDiffResult.BriefDiff.builder()
                     .actual(actual.asText())
@@ -66,7 +69,8 @@ public abstract class AbstractJsonComparator<T extends JsonNode> implements Json
 
     /**
      * 是否是需要忽略的path
-     * @param path 当前path
+     *
+     * @param path        当前path
      * @param ignorePaths
      * @return
      */
@@ -83,8 +87,9 @@ public abstract class AbstractJsonComparator<T extends JsonNode> implements Json
 
     /**
      * 解析Json并根据path来获取具体JsonNode
+     *
      * @param jsonStr json字符串
-     * @param path 路径
+     * @param path    路径
      * @return
      */
     protected JsonNode getJsonNodeByPath(String jsonStr, String path) {
@@ -108,6 +113,7 @@ public abstract class AbstractJsonComparator<T extends JsonNode> implements Json
 
     /**
      * 将Path转换为实际的jmesPath
+     *
      * @param path 内部path
      * @return
      */

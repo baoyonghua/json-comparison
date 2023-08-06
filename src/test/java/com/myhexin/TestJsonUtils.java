@@ -9,6 +9,7 @@ import com.myhexin.autotest.jsoncomparison.result.BriefDiffResult;
 import com.myhexin.autotest.jsoncomparison.utils.JsonUtils;
 import org.junit.Test;
 
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -33,115 +34,75 @@ public class TestJsonUtils {
             "}\n";
 
     private static final String ACTUAL = "{\n" +
-            "  \"field1\": null,\n" +
-            "  \"field101\": 101,\n" +
-            "  \"field2\": true,\n" +
-            "  \"field3\": {\n" +
-            "    \"nested1\": 123,\n" +
-            "    \"nested2\": {\n" +
-            "      \"nested3\": \"abc\",\n" +
-            "      \"nested4\": {\n" +
-            "        \"nested5\": \"xyz\"\n" +
-            "      }\n" +
-            "    },\n" +
-            "    \"nested6\": {\n" +
-            "      \"nested7\": \"def\"\n" +
-            "    }\n" +
+            "  \"name\": \"John Doe\",\n" +
+            "  \"age\": 30,\n" +
+            "  \"email\": \"johndoe@example.com\",\n" +
+            "  \"address\": {\n" +
+            "    \"street\": \"123 Main St\",\n" +
+            "    \"city\": \"New York\",\n" +
+            "    \"state\": \"NY\"\n" +
             "  },\n" +
-            "  \"field4\": {\n" +
-            "    \"nested8\": {\n" +
-            "      \"nested9\": \"ghi\",\n" +
-            "      \"nested10\": \"jkl\",\n" +
-            "      \"nested100\": \"jkl\"\n" +
-            "    },\n" +
-            "    \"nested11\": {\n" +
-            "      \"nested12\": \"mno\"\n" +
-            "    }\n" +
+            "  \"phone_numbers\": [\n" +
+            "    \"123-456-7891\",\n" +
+            "    \"987-654-3210\"\n" +
+            "  ],\n" +
+            "  \"interests\": [\n" +
+            "    \"Sports\",\n" +
+            "    \"Music\",\n" +
+            "    \"Travel\"\n" +
+            "  ],\n" +
+            "  \"education\": {\n" +
+            "    \"degree\": \"Bachelor's\",\n" +
+            "    \"university\": \"ABC University\"\n" +
             "  },\n" +
-            "  \"field5\": \"value2\",\n" +
-            "  \"field6\": {\n" +
-            "    \"nested13\": {\n" +
-            "      \"nested14\": {\n" +
-            "        \"nested15\": {\n" +
-            "          \"nested16\": {\n" +
-            "            \"nested17\": {\n" +
-            "              \"nested18\": {\n" +
-            "                \"nested19\": {\n" +
-            "                  \"nested20\": {\n" +
-            "                    \"nested21\": {\n" +
-            "                      \"nested22\": {\n" +
-            "                        \"nested23\": {\n" +
-            "                          \"nested24\": {\n" +
-            "                            \"nested25\": \"pqr\"\n" +
-            "                          }\n" +
-            "                        }\n" +
-            "                      }\n" +
-            "                    }\n" +
-            "                  }\n" +
-            "                }\n" +
-            "              }\n" +
-            "            }\n" +
-            "          }\n" +
-            "        }\n" +
-            "      }\n" +
+            "  \"friends\": [\n" +
+            "    {\n" +
+            "      \"name\": \"Jane Smith\",\n" +
+            "      \"age\": 28,\n" +
+            "      \"email\": \"janesmith@example.com\"\n" +
+            "    },\n" +
+            "    {\n" +
+            "      \"name\": \"Bob Johnson\",\n" +
+            "      \"age\": 32,\n" +
+            "      \"email\": \"bobjohnson@example.com\"\n" +
             "    }\n" +
-            "  }\n" +
+            "  ]\n" +
             "}";
 
     private static final String EXCEPTED = "{\n" +
-            "  \"field1\": \"value1\",\n" +
-            "  \"field2\": true,\n" +
-            "  \"field3\": {\n" +
-            "    \"nested1\": 123,\n" +
-            "    \"nested2\": {\n" +
-            "      \"nested3\": \"abc\",\n" +
-            "      \"nested4\": {\n" +
-            "        \"nested5\": \"xyz\"\n" +
-            "      }\n" +
-            "    },\n" +
-            "    \"nested6\": {\n" +
-            "      \"nested7\": \"def\"\n" +
-            "    }\n" +
+            "  \"name\": \"John Doe\",\n" +
+            "  \"age\": 30,\n" +
+            "  \"email\": \"johndoe@example.com\",\n" +
+            "  \"address\": {\n" +
+            "    \"street\": \"123 Main St\",\n" +
+            "    \"city\": \"New York\",\n" +
+            "    \"state\": \"NY\"\n" +
             "  },\n" +
-            "  \"field4\": {\n" +
-            "    \"nested8\": {\n" +
-            "      \"nested9\": \"ghi\",\n" +
-            "      \"nested10\": \"jkl\",\n" +
-            "      \"nested200\": \"jkl\"\n" +
-            "    },\n" +
-            "    \"nested11\": {\n" +
-            "      \"nested12\": \"mno\"\n" +
-            "    }\n" +
+            "  \"phone_numbers\": [\n" +
+            "    \"123-456-7890\",\n" +
+            "    \"987-654-3210\"\n" +
+            "  ],\n" +
+            "  \"interests\": [\n" +
+            "    \"Sports\",\n" +
+            "    \"Music\",\n" +
+            "    \"Travel\"\n" +
+            "  ],\n" +
+            "  \"education\": {\n" +
+            "    \"degree\": \"Bachelor's\",\n" +
+            "    \"university\": \"ABC University\"\n" +
             "  },\n" +
-            "  \"field5\": \"value2\",\n" +
-            "  \"field102\": \"value102\",\n" +
-            "  \"field6\": {\n" +
-            "    \"nested13\": {\n" +
-            "      \"nested14\": {\n" +
-            "        \"nested15\": {\n" +
-            "          \"nested16\": {\n" +
-            "            \"nested17\": {\n" +
-            "              \"nested18\": {\n" +
-            "                \"nested19\": {\n" +
-            "                  \"nested20\": {\n" +
-            "                    \"nested21\": {\n" +
-            "                      \"nested22\": {\n" +
-            "                        \"nested23\": {\n" +
-            "                          \"nested24\": {\n" +
-            "                            \"nested25\": \"pqr\"\n" +
-            "                          }\n" +
-            "                        }\n" +
-            "                      }\n" +
-            "                    }\n" +
-            "                  }\n" +
-            "                }\n" +
-            "              }\n" +
-            "            }\n" +
-            "          }\n" +
-            "        }\n" +
-            "      }\n" +
+            "  \"friends\": [\n" +
+            "    {\n" +
+            "      \"name\": \"Jane Smith\",\n" +
+            "      \"age\": 28,\n" +
+            "      \"email\": \"janesmith@example.com\"\n" +
+            "    },\n" +
+            "    {\n" +
+            "      \"name\": \"Bob Johnson\",\n" +
+            "      \"age\": 32,\n" +
+            "      \"email\": \"bobjohnson@example.com\"\n" +
             "    }\n" +
-            "  }\n" +
+            "  ]\n" +
             "}";
 
     @Test
@@ -163,13 +124,18 @@ public class TestJsonUtils {
         JsonNode excepted = JsonUtils.getJsonNode(EXCEPTED);
 
         JsonCompareConfig config = new JsonCompareConfig();
+        config.setIgnorePath(new HashSet<>());
+        config.setExcapedJsonPath(new HashSet<>());
         CompareParams<JsonNode> params = CompareParams.<JsonNode>builder()
                 .actual(actual)
                 .expected(excepted)
                 .originalExcepetd(EXCEPTED)
                 .config(config)
                 .build();
-        List<BriefDiffResult.BriefDiff> diffs = JsonComparatorFactory.build().executeContrast(JsonNodeType.OBJECT, params);
+        List<BriefDiffResult.BriefDiff> diffs = JsonComparatorFactory.build()
+                .executeContrast(JsonNodeType.OBJECT, params);
         diffs.forEach(System.out::println);
     }
+
+
 }

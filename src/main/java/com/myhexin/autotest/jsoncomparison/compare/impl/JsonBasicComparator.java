@@ -32,6 +32,8 @@ public class JsonBasicComparator extends AbstractJsonComparator<JsonNode> {
             return Collections.singletonList(diff);
         }
         boolean pass = false;
+        String actualText = actual.asText();
+        String expectedText = expected.asText();
         switch (actual.getNodeType()) {
             // 如果实际为null则预期也一定为null
             case NULL:
@@ -42,7 +44,7 @@ public class JsonBasicComparator extends AbstractJsonComparator<JsonNode> {
                 break;
             case STRING:
             case BINARY:
-                pass = (actual.asText().equals(expected.asText()));
+                pass = (actualText.equals(expectedText));
                 break;
             case BOOLEAN:
                 pass = (actual.asBoolean() == expected.asBoolean());
@@ -51,12 +53,15 @@ public class JsonBasicComparator extends AbstractJsonComparator<JsonNode> {
                 break;
         }
         if (!pass) {
-            String reason = CompareMessageConstant.UNEQUALS;
             diff = BriefDiffResult.BriefDiff.builder()
-                    .actual(actual.asText())
-                    .expected(expected.asText())
+                    .actual(actualText)
+                    .expected(expectedText)
                     .diffKey(params.getCurrentPath())
-                    .reason(reason)
+                    .reason(String.format(
+                            CompareMessageConstant.VALUE_UNEQUALS,
+                            actual,
+                            expected)
+                    )
                     .build();
             return Collections.singletonList(diff);
         }

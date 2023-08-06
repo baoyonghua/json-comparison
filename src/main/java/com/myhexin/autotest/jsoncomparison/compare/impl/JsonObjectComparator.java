@@ -68,7 +68,7 @@ public class JsonObjectComparator extends AbstractJsonComparator<ObjectNode> {
             if (!actualFieldNameList.contains(fieldName)) {
                 BriefDiffResult.BriefDiff diff = BriefDiffResult.BriefDiff.builder()
                         .diffKey(params.getCurrentPath() + "." + fieldName)
-                        .reason(CompareMessageConstant.ACTUAL_MISS_KEY)
+                        .reason(String.format(CompareMessageConstant.ACTUAL_MISS_KEY, fieldName) )
                         .actual("key miss!!")
                         .expected(params.getExpected().get(fieldName).toString())
                         .build();
@@ -86,6 +86,7 @@ public class JsonObjectComparator extends AbstractJsonComparator<ObjectNode> {
 
     /**
      * 根据老的path构建出新的path
+     *
      * @param oldPath
      * @param fieldName
      * @return

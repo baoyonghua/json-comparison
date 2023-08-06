@@ -10,7 +10,9 @@ public final class CompareMessageConstant {
 
     public static final String ONLY_IN_EXPECTED = "只在预期中存在，在实际中为null";
 
-    public static final String UNEQUALS = "实际值与预期值的类型不符合, 实际值类型: [%s], 预期值类型: [%s]";
+    public static final String TYPE_UNEQUALS = "实际值与预期值的类型不符合, 实际值类型: [%s], 预期值类型: [%s]";
+
+    public static final String VALUE_UNEQUALS = "实际值和预期值不一致, 实际值: [%s], 预期值: [%s]";
 
     public static final String EXPECTED_MISS_KEY = "该键[%s]只在预期中存在, 在实际中不存在此键";
 
