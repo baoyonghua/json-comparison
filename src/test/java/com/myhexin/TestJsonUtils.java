@@ -115,7 +115,7 @@ public class TestJsonUtils {
             "      \"age\": 32,\n" +
             "      \"skills\": [\n" +
             "        {\n" +
-            "          \"language\": \"Ruby\",\n" +
+            "          \"language\": \"Ruby1\",\n" +
             "          \"level\": \"Intermediate\"\n" +
             "        },\n" +
             "        {\n" +
@@ -146,7 +146,7 @@ public class TestJsonUtils {
         JsonNode excepted = JsonUtils.getJsonNode(EXCEPTED);
         JsonCompareConfig config = new JsonCompareConfig();
         HashSet<String> set = new HashSet<>();
-        set.add("root.employees[1].skills");
+        set.add("root.employees[2].skills");
         config.setArrayWithDisorderPath(set);
         CompareParams<JsonNode> params = CompareParams.<JsonNode>builder()
                 .actual(actual)

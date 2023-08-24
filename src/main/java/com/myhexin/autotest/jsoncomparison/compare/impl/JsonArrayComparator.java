@@ -54,6 +54,7 @@ public class JsonArrayComparator extends AbstractJsonComparator<ArrayNode> {
             Iterator<JsonNode> actualIterator = actual.iterator();
             Iterator<JsonNode> expectedIterator = expected.iterator();
             while (actualIterator.hasNext()) {
+                List<BriefDiffResult.BriefDiff> subDiffs = null;
                 boolean isPass = false;
                 JsonNode actualJsonNode = actualIterator.next();
                 int expectedIndex = 0;
@@ -69,14 +70,16 @@ public class JsonArrayComparator extends AbstractJsonComparator<ArrayNode> {
                         isPass = true;
                         break;
                     }
+                    subDiffs = diffList;
                     expectedIndex++;
                 }
                 if (!isPass) {
-                     diff = BriefDiffResult.BriefDiff.builder()
+                    diff = BriefDiffResult.BriefDiff.builder()
                             .diffKey(currentPath)
                             .reason(CompareMessageConstant.DISORDER_ARRAY_ACTUAL_NOT_FOUND_IN_EXCEPTED)
                             .actual(actualJsonNode.toString())
                             .expected(expected.toString())
+                            .subDiffs(subDiffs)
                             .build();
                     diffs.add(diff);
                 }
