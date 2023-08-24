@@ -29,16 +29,6 @@ public class CompareParams<T> implements Serializable {
     private String currentPath;
 
     /**
-     * 上一次的路径
-     */
-    private String prevPath;
-
-    /**
-     * 原始的预期json字符串
-     */
-    private String originalExcepetd;
-
-    /**
      * 预期Json
      */
     private T expected;

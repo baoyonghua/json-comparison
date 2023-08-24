@@ -13,19 +13,37 @@ import java.util.List;
 @Data
 public class BriefDiffResult implements Serializable {
 
+    /**
+     * 当前的对比所产生的差异信息
+     */
     private List<BriefDiff> briefDiffs;
 
     @Data
     @Builder
     public static class BriefDiff implements Serializable {
+        /**
+         * 预期值
+         */
         private String expected;
 
+        /**
+         * 实际值
+         */
         private String actual;
 
+        /**
+         * 产生差异的key
+         */
         private String diffKey;
 
+        /**
+         * 当前差异原因
+         */
         private String reason;
 
+        /**
+         * 子差异信息(针对需要进行转移的字符串)
+         */
         private List<BriefDiff> subDiffs;
     }
 }

@@ -136,7 +136,6 @@ public class JsonBasicComparator extends AbstractJsonComparator<JsonNode> {
                 CompareParams<JsonNode> compareParams = CompareParams.<JsonNode>builder()
                         .actual(jsonNode1)
                         .expected(jsonNode2)
-                        .originalExcepetd(expectedText)
                         .config(excapedJson)
                         .build();
                 List<BriefDiffResult.BriefDiff> diffs = JsonComparatorFactory.build()

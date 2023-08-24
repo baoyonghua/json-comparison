@@ -35,49 +35,50 @@ public class JsonArrayComparator extends AbstractJsonComparator<ArrayNode> {
         }
         int actualSize = actual.size();
         int expectedSize = expected.size();
+        if (actualSize != expectedSize) {
+            diff = BriefDiffResult.BriefDiff.builder()
+                    .actual("实际的列表长度为: " + actualSize)
+                    .expected("预期的列表长度为: " + expectedSize)
+                    .diffKey(currentPath)
+                    .reason(String.format(CompareMessageConstant.LIST_LENGTH_NOT_EQUALS, actualSize, expectedSize))
+                    .build();
+            diffs.add(diff);
+        }
         // 乱序时不支持长度不一致的对比
-        if (params.getConfig().getIgnorePath().contains(currentPath)) {
+        if (isWithDisorderPath(params, currentPath)) {
             log.info("当前路径[{}]配置了支持乱序的数组对比...", currentPath);
             if (actualSize != expectedSize) {
                 log.warn("不支持乱序时进行长度不一致的数组对比！");
-                diff = BriefDiffResult.BriefDiff.builder()
-                        .actual(actual.asText())
-                        .expected(expected.asText())
-                        .diffKey(currentPath)
-                        .reason(String.format(CompareMessageConstant.LIST_LENGTH_NOT_EQUALS, actualSize, expectedSize))
-                        .build();
-                return Collections.singletonList(diff);
-            } else {
-                String expectedJson = getJsonNodeByPath(params.getOriginalExcepetd(), currentPath).toString();
-                Iterator<JsonNode> actualIterator = actual.iterator();
-                Iterator<JsonNode> expectedIterator = expected.iterator();
-                while (actualIterator.hasNext()) {
-                    boolean isPass = false;
-                    JsonNode actualJsonNode = actualIterator.next();
-                    int expectedIndex = 0;
-                    while (expectedIterator.hasNext()) {
-                        String expectedPath = currentPath + "[" + expectedIndex + "]";
-                        JsonNode node = getJsonNodeByPath(params.getOriginalExcepetd(), expectedPath);
-                        CompareParams<JsonNode> compareParams =
-                                bulidCompareParams(params, expectedPath, actualJsonNode, node);
-                        // 从工厂中获取对比器进行对比
-                        List<BriefDiffResult.BriefDiff> diffList = JsonComparatorFactory.build()
-                                .executeContrast(actualJsonNode.getNodeType(), compareParams);
-                        if (diffList.isEmpty()) {
-                            isPass = true;
-                            break;
-                        }
-                        expectedIndex++;
+                return diffs;
+            }
+            Iterator<JsonNode> actualIterator = actual.iterator();
+            Iterator<JsonNode> expectedIterator = expected.iterator();
+            while (actualIterator.hasNext()) {
+                boolean isPass = false;
+                JsonNode actualJsonNode = actualIterator.next();
+                int expectedIndex = 0;
+                while (expectedIterator.hasNext()) {
+                    String expectedPath = currentPath + "[" + expectedIndex + "]";
+                    JsonNode expectedJsonNode = expectedIterator.next();
+                    CompareParams<JsonNode> compareParams =
+                            bulidCompareParams(params, expectedPath, actualJsonNode, expectedJsonNode);
+                    // 从工厂中获取对比器进行对比
+                    List<BriefDiffResult.BriefDiff> diffList = JsonComparatorFactory.build()
+                            .executeContrast(actualJsonNode.getNodeType(), compareParams);
+                    if (diffList.isEmpty()) {
+                        isPass = true;
+                        break;
                     }
-                    if (!isPass) {
-                        diff = BriefDiffResult.BriefDiff.builder()
-                                .diffKey(currentPath)
-                                .reason(CompareMessageConstant.DISORDER_ARRAY_ACTUAL_NOT_FOUND_IN_EXCEPTED)
-                                .actual(params.getActual().toString())
-                                .expected(expectedJson)
-                                .build();
-                        diffs.add(diff);
-                    }
+                    expectedIndex++;
+                }
+                if (!isPass) {
+                     diff = BriefDiffResult.BriefDiff.builder()
+                            .diffKey(currentPath)
+                            .reason(CompareMessageConstant.DISORDER_ARRAY_ACTUAL_NOT_FOUND_IN_EXCEPTED)
+                            .actual(actualJsonNode.toString())
+                            .expected(expected.toString())
+                            .build();
+                    diffs.add(diff);
                 }
             }
         } else {
@@ -102,6 +103,17 @@ public class JsonArrayComparator extends AbstractJsonComparator<ArrayNode> {
         return "Json数组对比器";
     }
 
+    private boolean isWithDisorderPath(CompareParams<ArrayNode> params, String path) {
+        Set<String> arrayWithDisorderPaths = params.getConfig().getArrayWithDisorderPath();
+        // 如果这里包含则直接返回
+        if (arrayWithDisorderPaths.contains(path)) {
+            return true;
+        }
+        // employees[*].skills 和 employees[1].skills 是等同的
+        String finalPath = path.replaceAll("[\\d+]", "*");
+        return arrayWithDisorderPaths.contains(finalPath);
+    }
+
     /**
      * 构建对比时所必须的参数
      *
@@ -112,10 +124,8 @@ public class JsonArrayComparator extends AbstractJsonComparator<ArrayNode> {
             CompareParams<ArrayNode> params, String path, JsonNode actualJsonNode, JsonNode expectedJsonNode) {
         return CompareParams.<JsonNode>builder()
                 .currentPath(path)
-                .prevPath(params.getCurrentPath())
                 .actual(actualJsonNode)
                 .expected(expectedJsonNode)
-                .originalExcepetd(params.getOriginalExcepetd())
                 .config(params.getConfig())
                 .build();
     }

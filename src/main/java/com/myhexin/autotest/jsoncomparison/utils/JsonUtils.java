@@ -1,14 +1,17 @@
 package com.myhexin.autotest.jsoncomparison.utils;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeType;
 import com.myhexin.autotest.jsoncomparison.exception.JsonParseException;
+import com.myhexin.autotest.jsoncomparison.result.BriefDiffResult;
 import io.burt.jmespath.Expression;
 import io.burt.jmespath.jackson.JacksonRuntime;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * @author baoyh
@@ -62,5 +65,14 @@ public final class JsonUtils {
                             ", 预期类型: " + type);
         }
         return clz.cast(jsonNode);
+    }
+
+    public static String toJsonString(Object obj) {
+        try {
+            return OBJECT_MAPPER.writeValueAsString(obj);
+        } catch (JsonProcessingException e) {
+            log.error("解析JSON失败, 当前错误信息：{}", e.getMessage());
+            return "";
+        }
     }
 }

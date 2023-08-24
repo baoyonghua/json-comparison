@@ -84,7 +84,7 @@ public class TestJsonUtils {
             "  \"employees\": [\n" +
             "    {\n" +
             "      \"name\": \"John Doe\",\n" +
-            "      \"age\": 30,\n" +
+            "      \"age\": 31,\n" +
             "      \"skills\": [\n" +
             "        {\n" +
             "          \"language\": \"Python\",\n" +
@@ -98,7 +98,7 @@ public class TestJsonUtils {
             "    },\n" +
             "    {\n" +
             "      \"name\": \"Jane Smith\",\n" +
-            "      \"age\": 28,\n" +
+            "      \"age\": 25,\n" +
             "      \"skills\": [\n" +
             "        {\n" +
             "          \"language\": \"Java\",\n" +
@@ -145,14 +145,17 @@ public class TestJsonUtils {
         JsonNode actual = JsonUtils.getJsonNode(ACTUAL);
         JsonNode excepted = JsonUtils.getJsonNode(EXCEPTED);
         JsonCompareConfig config = new JsonCompareConfig();
+        HashSet<String> set = new HashSet<>();
+        set.add("root.employees[1].skills");
+        config.setArrayWithDisorderPath(set);
         CompareParams<JsonNode> params = CompareParams.<JsonNode>builder()
                 .actual(actual)
                 .expected(excepted)
-                .originalExcepetd(EXCEPTED)
                 .config(config)
                 .build();
         List<BriefDiffResult.BriefDiff> diffs = JsonComparatorFactory.build()
                 .execute(JsonNodeType.OBJECT, params);
-        diffs.forEach(System.out::println);
+        String jsonStr = JsonUtils.toJsonString(diffs);
+        System.out.println(jsonStr);
     }
 }

@@ -11,7 +11,7 @@ import java.util.List;
 /**
  * JSON对比器
  *
- * @param <T> 需要对比的JSON类型, 例如JsonObject or JsonArray
+ * @param <T> 需要对比的JSON类型, 例如 JsonObject or JsonArray
  * @author baoyonghua@myhexin.com
  * @date 2023/6/21
  */

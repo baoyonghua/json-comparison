@@ -20,8 +20,8 @@ public class JsonObjectComparator extends AbstractJsonComparator<ObjectNode> {
     @Override
     public List<BriefDiffResult.BriefDiff> compare(CompareParams<ObjectNode> params) {
         BriefDiffResult.BriefDiff diff;
-        ObjectNode actual = params.getActual();
-        ObjectNode expected = params.getExpected();
+        JsonNode actual = params.getActual();
+        JsonNode expected = params.getExpected();
         // 如果两个类型不一致则不予对比, 直接返回
         String currentPath = params.getCurrentPath();
         diff = checkJsonNodeType(currentPath, actual, expected);
@@ -30,32 +30,33 @@ public class JsonObjectComparator extends AbstractJsonComparator<ObjectNode> {
         }
         ArrayList<BriefDiffResult.BriefDiff> diffs = new ArrayList<>();
         Iterator<Map.Entry<String, JsonNode>> actualFields = actual.fields();
+        List<String> expectedFieldNames = ListUtil.list(false, expected.fieldNames());
+        List<String> actualFieldNames = ListUtil.list(false, actual.fieldNames());
+
         //以实际的字段为基准进行对比
         while (actualFields.hasNext()) {
-            Map.Entry<String, JsonNode> field = actualFields.next();
-            CompareParams<JsonNode> compareParams = bulidCompareParams(params, field);
-            // 如果预期中此字段为null则需要去校验下是否预期中是没有此字段
-            if (compareParams.getExpected().isNull()) {
-                // 根据上一次的path获取源预期的object json
-                ObjectNode node = getObjectNodeByPath(compareParams.getOriginalExcepetd(), compareParams.getPrevPath());
-                if (!ListUtil.list(false, node.fieldNames()).contains(field.getKey())) {
-                    diff = BriefDiffResult.BriefDiff.builder()
-                            .diffKey(compareParams.getCurrentPath())
-                            .reason(String.format(CompareMessageConstant.EXPECTED_MISS_KEY, field.getKey()))
-                            .actual(compareParams.getActual().toString())
-                            .expected(String.format("预期中不存在该key: [%s]", field.getKey()))
-                            .build();
-                    diffs.add(diff);
-                    continue;
-                }
+            Map.Entry<String, JsonNode> actualField = actualFields.next();
+            String actualFieldName = actualField.getKey();
+            JsonNode expectedJsonNode = expected.get(actualFieldName);
+            // 如果预期中此字段为null则需要去校验下是否是预期中没有此字段
+            if (expectedJsonNode.isNull() && !expectedFieldNames.contains(actualFieldName)) {
+                diff = BriefDiffResult.BriefDiff.builder()
+                        .diffKey(buildPath(currentPath, actualFieldName))
+                        .reason(String.format(CompareMessageConstant.EXPECTED_MISS_KEY, actualFieldName))
+                        .actual(actualField.getValue().asText())
+                        .expected(String.format("预期中不存在该key: [%s]", actualFieldName))
+                        .build();
+                diffs.add(diff);
+                continue;
             }
+            CompareParams<JsonNode> compareParams = bulidCompareParams(params, actualField, expectedJsonNode);
             // 从工厂中获取对比器进行对比
             List<BriefDiffResult.BriefDiff> diffList = JsonComparatorFactory.build()
-                    .executeContrast(field.getValue().getNodeType(), compareParams);
+                    .executeContrast(actualField.getValue().getNodeType(), compareParams);
             diffs.addAll(diffList);
         }
         //找出预期结果中可能多出来的字段<即在实际结果中不存在的字段>
-        diffs.addAll(findFieldsInExpected(params));
+        diffs.addAll(findFieldsInExpected(expectedFieldNames, actualFieldNames, params));
         return diffs;
     }
 
@@ -66,19 +67,17 @@ public class JsonObjectComparator extends AbstractJsonComparator<ObjectNode> {
      * @param <T>
      * @return
      */
-    private <T extends JsonNode> ArrayList<BriefDiffResult.BriefDiff> findFieldsInExpected(CompareParams<T> params) {
+    private <T extends JsonNode> ArrayList<BriefDiffResult.BriefDiff> findFieldsInExpected(
+            List<String> expectedFieldNames, List<String> actualFieldNames, CompareParams<ObjectNode> params
+    ) {
         //找出预期结果中可能多出来的字段<即在实际结果中不存在的字段>, 因为之前只是以实际结果为基准进行了对比
-        Iterator<String> expectedFieldNames = params.getExpected().fieldNames();
-        List<String> expectedFieldNameList = ListUtil.list(false, expectedFieldNames);
-        Iterator<String> actualFieldNames = params.getActual().fieldNames();
-        List<String> actualFieldNameList = ListUtil.list(false, actualFieldNames);
         ArrayList<BriefDiffResult.BriefDiff> briefDiffs = new ArrayList<>();
-        for (String fieldName : expectedFieldNameList) {
-            if (!actualFieldNameList.contains(fieldName)) {
+        for (String fieldName : expectedFieldNames) {
+            if (!actualFieldNames.contains(fieldName)) {
                 BriefDiffResult.BriefDiff diff = BriefDiffResult.BriefDiff.builder()
                         .diffKey(params.getCurrentPath() + "." + fieldName)
                         .reason(String.format(CompareMessageConstant.ACTUAL_MISS_KEY, fieldName))
-                        .actual("key miss!!")
+                        .actual(String.format("预期中不存在该key: [%s]", fieldName))
                         .expected(params.getExpected().get(fieldName).toString())
                         .build();
                 briefDiffs.add(diff);
@@ -108,18 +107,17 @@ public class JsonObjectComparator extends AbstractJsonComparator<ObjectNode> {
      * 构建对比时所必须的参数
      *
      * @param params
-     * @param field
+     * @param actualField
+     * @param expectedJsonNode
      * @return
      */
     private CompareParams<JsonNode> bulidCompareParams(
-            CompareParams<ObjectNode> params, Map.Entry<String, JsonNode> field) {
-        String path = buildPath(params.getCurrentPath(), field.getKey());
+            CompareParams<ObjectNode> params, Map.Entry<String, JsonNode> actualField, JsonNode expectedJsonNode) {
+        String path = buildPath(params.getCurrentPath(), actualField.getKey());
         return CompareParams.<JsonNode>builder()
                 .currentPath(path)
-                .prevPath(params.getCurrentPath())
-                .actual(field.getValue())
-                .expected(getJsonNodeByPath(params.getOriginalExcepetd(), path))
-                .originalExcepetd(params.getOriginalExcepetd())
+                .actual(actualField.getValue())
+                .expected(expectedJsonNode)
                 .config(params.getConfig())
                 .build();
     }
