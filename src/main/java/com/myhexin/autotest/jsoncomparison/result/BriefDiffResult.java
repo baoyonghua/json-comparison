@@ -32,7 +32,7 @@ public class BriefDiffResult implements Serializable {
         private String actual;
 
         /**
-         * 产生差异的key
+         * 产生差异的key, 针对于实际的json而言
          */
         private String diffKey;
 

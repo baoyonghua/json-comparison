@@ -24,17 +24,17 @@ public class CompareParams<T> implements Serializable {
     private JsonCompareConfig config;
 
     /**
-     * 当前路径
+     * 当前路径, 针对于实际的json而言
      */
     private String currentPath;
 
     /**
-     * 预期Json
+     * 预期的JSON
      */
     private T expected;
 
     /**
-     * 实际的结果
+     * 实际的JSON
      */
     private T actual;
 

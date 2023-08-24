@@ -51,18 +51,17 @@ public class JsonArrayComparator extends AbstractJsonComparator<ArrayNode> {
                 log.warn("不支持乱序时进行长度不一致的数组对比！");
                 return diffs;
             }
-            Iterator<JsonNode> actualIterator = actual.iterator();
-            Iterator<JsonNode> expectedIterator = expected.iterator();
-            while (actualIterator.hasNext()) {
-                List<BriefDiffResult.BriefDiff> subDiffs = null;
+            String actualPath;
+            int actualIndex = 0;
+            for (JsonNode actualJsonNode : actual) {
                 boolean isPass = false;
-                JsonNode actualJsonNode = actualIterator.next();
+                actualPath = currentPath + "[" + ++actualIndex + "]";
+                String expectedPath;
                 int expectedIndex = 0;
-                while (expectedIterator.hasNext()) {
-                    String expectedPath = currentPath + "[" + expectedIndex + "]";
-                    JsonNode expectedJsonNode = expectedIterator.next();
+                for (JsonNode jsonNode : expected) {
+                    expectedPath = currentPath + "[" + ++expectedIndex + "]";
                     CompareParams<JsonNode> compareParams =
-                            bulidCompareParams(params, expectedPath, actualJsonNode, expectedJsonNode);
+                            bulidCompareParams(params, expectedPath, actualJsonNode, jsonNode);
                     // 从工厂中获取对比器进行对比
                     List<BriefDiffResult.BriefDiff> diffList = JsonComparatorFactory.build()
                             .executeContrast(actualJsonNode.getNodeType(), compareParams);
@@ -70,16 +69,13 @@ public class JsonArrayComparator extends AbstractJsonComparator<ArrayNode> {
                         isPass = true;
                         break;
                     }
-                    subDiffs = diffList;
-                    expectedIndex++;
                 }
                 if (!isPass) {
                     diff = BriefDiffResult.BriefDiff.builder()
-                            .diffKey(currentPath)
+                            .diffKey(actualPath)
                             .reason(CompareMessageConstant.DISORDER_ARRAY_ACTUAL_NOT_FOUND_IN_EXCEPTED)
                             .actual(actualJsonNode.toString())
                             .expected(expected.toString())
-                            .subDiffs(subDiffs)
                             .build();
                     diffs.add(diff);
                 }
