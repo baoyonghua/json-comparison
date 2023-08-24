@@ -1,6 +1,7 @@
 package com.myhexin.autotest.jsoncomparison.config;
 
 
+import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -26,7 +27,7 @@ public class JsonCompareConfig implements Serializable {
     /**
      * 需要忽略顺序的数组对比路径集合 --> 支持乱序
      */
-    private Set<String> arrayWithDisorderPath = new HashSet<>();
+    private Set<ArrayWithDisorderConfig> arrayWithDisorderPath = new HashSet<>();
 
     /**
      * 需要进行Json转义进行对比的路径集合
@@ -38,7 +39,52 @@ public class JsonCompareConfig implements Serializable {
      */
     private Set<ToleantConfig> toleantPath = new HashSet<>();
 
+    public String getArrayWithDisorderUniqueKey(String path) {
+        if (arrayWithDisorderPath.isEmpty()) {
+            return null;
+        }
+        for (ArrayWithDisorderConfig config : arrayWithDisorderPath) {
+            if (config.getPath().equals(path)) {
+                return config.getUniqueKey();
+            }
+        }
+        return null;
+    }
+
     @Data
+    @Builder
+    public static class ArrayWithDisorderConfig implements Serializable {
+        /**
+         * 当前忽略数组顺序的唯一键
+         */
+        private String uniqueKey;
+
+        /**
+         * 当前忽略数组顺序的路径
+         */
+        private String path;
+
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (!(o instanceof ArrayWithDisorderConfig)) {
+                return false;
+            }
+            ArrayWithDisorderConfig other = (ArrayWithDisorderConfig) o;
+            return Objects.equals(path, other.path);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(path);
+        }
+    }
+
+    @Data
+    @Builder
     public static class ToleantConfig implements Serializable {
 
         /**
