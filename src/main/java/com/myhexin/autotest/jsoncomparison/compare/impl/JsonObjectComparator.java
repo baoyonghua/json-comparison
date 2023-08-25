@@ -19,12 +19,11 @@ public class JsonObjectComparator extends AbstractJsonComparator<ObjectNode> {
 
     @Override
     public List<BriefDiffResult.BriefDiff> compare(CompareParams<ObjectNode> params) {
-        BriefDiffResult.BriefDiff diff;
         JsonNode actual = params.getActual();
         JsonNode expected = params.getExpected();
         // 如果两个类型不一致则不予对比, 直接返回
         String currentPath = params.getCurrentPath();
-        diff = checkJsonNodeType(currentPath, actual, expected);
+        BriefDiffResult.BriefDiff diff = checkJsonNodeType(currentPath, actual, expected);
         if (Objects.nonNull(diff)) {
             return Collections.singletonList(diff);
         }

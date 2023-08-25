@@ -29,4 +29,6 @@ public final class CompareMessageConstant {
     public static final String DISORDER_ARRAY_ACTUAL_NOT_FOUND_IN_EXCEPTED =
             "针对于乱序的数组, 在预期中未找到与实际相匹配的元素！";
 
+    public static final String DISORDER_ARRAY_ACTUAL_NOT_FOUND_IN_ACTUAL =
+            "针对于乱序的数组, 在实际中未找到与预期相匹配的元素！";
 }

@@ -54,7 +54,7 @@ public class TestJsonBasicCompartor {
     }
 
     @Test
-    public void testString() throws JSONException {
+    public void testString(){
         JsonBasicComparator comparator = new JsonBasicComparator();
         CompareParams<JsonNode> params = CompareParams.<JsonNode>builder()
                 .actual(TextNode.valueOf("baoyonghua"))
