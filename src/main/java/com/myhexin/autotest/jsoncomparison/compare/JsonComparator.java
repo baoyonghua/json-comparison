@@ -32,31 +32,12 @@ public interface JsonComparator<T extends JsonNode> {
      * @param params json对比所需要的参数
      * @return 如果存在差异则返回差异信息, 否则返回null
      */
-    List<BriefDiffResult.BriefDiff> compare(CompareParams<T> params);
+    BriefDiffResult compare(CompareParams<T> params);
 
     /**
      * 在对比之后进行一些操作
      */
     void afterCompare();
-
-    /**
-     * 根据JsonAssert库进行对比
-     *
-     * @param expected
-     * @param actual
-     * @param strict
-     * @return 对比的结果信息
-     * @throws JSONException
-     */
-    default String compareByJsonAssert(String expected, String actual, boolean strict) throws JSONException {
-        String reason = "";
-        try {
-            JSONAssert.assertEquals(expected, actual, strict);
-        } catch (AssertionError e) {
-            reason = e.getMessage();
-        }
-        return reason;
-    }
 
     /**
      * 将Path转换为实际的jmesPath

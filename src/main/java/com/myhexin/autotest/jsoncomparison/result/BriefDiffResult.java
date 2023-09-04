@@ -1,9 +1,12 @@
 package com.myhexin.autotest.jsoncomparison.result;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.Builder;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -16,7 +19,11 @@ public class BriefDiffResult implements Serializable {
     /**
      * 当前的对比所产生的差异信息
      */
-    private List<BriefDiff> briefDiffs;
+    private List<BriefDiff> briefDiffs = new ArrayList<>();
+
+    private JsonNode childActualJson;
+
+    private JsonNode childExpectedJson;
 
     @Data
     @Builder

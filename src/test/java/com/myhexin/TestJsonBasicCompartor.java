@@ -27,8 +27,8 @@ public class TestJsonBasicCompartor {
                 .actual(NullNode.instance)
                 .expected(NullNode.instance)
                 .currentPath("").build();
-        List<BriefDiffResult.BriefDiff> diffs = comparator.compare(params);
-        Assert.isNull(diffs);
+        BriefDiffResult diffResult = comparator.compare(params);
+        Assert.isNull(diffResult);
     }
 
     @Test
@@ -38,8 +38,8 @@ public class TestJsonBasicCompartor {
                 .actual(IntNode.valueOf(1))
                 .expected(IntNode.valueOf(1))
                 .currentPath("").build();
-        List<BriefDiffResult.BriefDiff> diffs = comparator.compare(params);
-        Assert.isNull(diffs);
+        BriefDiffResult diffResult = comparator.compare(params);
+        Assert.isNull(diffResult);
     }
 
     @Test
@@ -49,8 +49,8 @@ public class TestJsonBasicCompartor {
                 .actual(BooleanNode.valueOf(true))
                 .expected(BooleanNode.valueOf(true))
                 .currentPath("").build();
-        List<BriefDiffResult.BriefDiff> diffs = comparator.compare(params);
-        Assert.isNull(diffs);
+        BriefDiffResult diffResult = comparator.compare(params);
+        Assert.isNull(diffResult);
     }
 
     @Test
@@ -60,7 +60,7 @@ public class TestJsonBasicCompartor {
                 .actual(TextNode.valueOf("baoyonghua"))
                 .expected(TextNode.valueOf("baoyonghua"))
                 .currentPath("").build();
-        List<BriefDiffResult.BriefDiff> diffs = comparator.compare(params);
-        Assert.isNull(diffs);
+        BriefDiffResult diffResult = comparator.compare(params);
+        Assert.isNull(diffResult);
     }
 }

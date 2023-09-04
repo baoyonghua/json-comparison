@@ -69,22 +69,4 @@ public abstract class AbstractJsonComparator<T extends JsonNode> implements Json
     public void afterCompare() {
 
     }
-
-    /**
-     * 解析Json并根据path来获取具体JsonNode
-     *
-     * @param jsonStr json字符串
-     * @param path    路径
-     * @return
-     */
-    protected JsonNode getJsonNodeByPath(String jsonStr, String path) {
-        if (CharSequenceUtil.isBlank(path)) {
-            return JsonUtils.getJsonNode(jsonStr);
-        }
-        String jmesPath = JsonComparator.cropPath2JmesPath(path);
-        if (CharSequenceUtil.isBlank(jmesPath)) {
-            return JsonUtils.getJsonNode(jsonStr);
-        }
-        return JsonUtils.getJsonNodeByJmesPath(jsonStr, jmesPath);
-    }
 }

@@ -39,9 +39,9 @@ public class TestJsonCompare {
                 .expected(excepted)
                 .config(config)
                 .build();
-        List<BriefDiffResult.BriefDiff> diffs = JsonComparatorFactory.build()
+        BriefDiffResult diffResult= JsonComparatorFactory.build()
                 .execute(actual.getNodeType(), params);
-        String jsonStr = JsonUtils.toJsonString(diffs);
+        String jsonStr = JsonUtils.toJsonString(diffResult);
         System.out.println(jsonStr);
     }
 
@@ -57,9 +57,9 @@ public class TestJsonCompare {
                 .expected(excepted)
                 .config(config)
                 .build();
-        List<BriefDiffResult.BriefDiff> diffs = JsonComparatorFactory.build()
+        BriefDiffResult diffResult= JsonComparatorFactory.build()
                 .execute(actual.getNodeType(), params);
-        String jsonStr = JsonUtils.toJsonString(diffs);
+        String jsonStr = JsonUtils.toJsonString(diffResult);
         System.out.println(jsonStr);
     }
 
@@ -80,9 +80,9 @@ public class TestJsonCompare {
                 .expected(excepted)
                 .config(config)
                 .build();
-        List<BriefDiffResult.BriefDiff> diffs = JsonComparatorFactory.build()
+        BriefDiffResult diffResult= JsonComparatorFactory.build()
                 .execute(actual.getNodeType(), params);
-        String jsonStr = JsonUtils.toJsonString(diffs);
+        String jsonStr = JsonUtils.toJsonString(diffResult);
         System.out.println(jsonStr);
     }
 }

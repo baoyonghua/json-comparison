@@ -19,16 +19,17 @@ import java.util.*;
 public class JsonObjectComparator extends AbstractJsonComparator<ObjectNode> {
 
     @Override
-    public List<BriefDiffResult.BriefDiff> compare(CompareParams<ObjectNode> params) {
+    public BriefDiffResult compare(CompareParams<ObjectNode> params) {
+        BriefDiffResult result = new BriefDiffResult();
         JsonNode actual = params.getActual();
         JsonNode expected = params.getExpected();
         // 如果两个类型不一致则不予对比, 直接返回
         String currentPath = params.getCurrentPath();
         BriefDiffResult.BriefDiff diff = checkJsonNodeType(currentPath, actual, expected);
         if (Objects.nonNull(diff)) {
-            return Collections.singletonList(diff);
+            result.getBriefDiffs().add(diff);
+            return result;
         }
-        ArrayList<BriefDiffResult.BriefDiff> diffs = new ArrayList<>();
         Iterator<Map.Entry<String, JsonNode>> actualFields = actual.fields();
         List<String> expectedFieldNames = ListUtil.list(false, expected.fieldNames());
         List<String> actualFieldNames = ListUtil.list(false, actual.fieldNames());
@@ -38,7 +39,6 @@ public class JsonObjectComparator extends AbstractJsonComparator<ObjectNode> {
             Map.Entry<String, JsonNode> actualField = actualFields.next();
             String actualFieldName = actualField.getKey();
             JsonNode expectedJsonNode = expected.get(actualFieldName);
-            // 如果预期中此字段为null则需要去校验下是否是预期中没有此字段
             if (Objects.isNull(expectedJsonNode)) {
                 diff = BriefDiffResult.BriefDiff.builder()
                         .diffKey(buildPath(currentPath, actualFieldName))
@@ -47,18 +47,21 @@ public class JsonObjectComparator extends AbstractJsonComparator<ObjectNode> {
                         .actual(actualField.getValue().asText())
                         .expected(String.format("预期中不存在该key: [%s]", actualFieldName))
                         .build();
-                diffs.add(diff);
+                result.getBriefDiffs().add(diff);
                 continue;
             }
             CompareParams<JsonNode> compareParams = bulidCompareParams(params, actualField, expectedJsonNode);
             // 从工厂中获取对比器进行对比
-            List<BriefDiffResult.BriefDiff> diffList = JsonComparatorFactory.build()
+            BriefDiffResult diffResult = JsonComparatorFactory.build()
                     .executeContrast(actualField.getValue().getNodeType(), compareParams);
-            diffs.addAll(diffList);
+            if (diffResult == null) {
+                continue;
+            }
+            result.getBriefDiffs().addAll(diffResult.getBriefDiffs());
         }
         //找出预期结果中可能多出来的字段<即在实际结果中不存在的字段>
-        diffs.addAll(findFieldsInExpected(expectedFieldNames, actualFieldNames, params));
-        return diffs;
+        result.getBriefDiffs().addAll(findFieldsInExpected(expectedFieldNames, actualFieldNames, params));
+        return result;
     }
 
     /**

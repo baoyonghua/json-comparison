@@ -25,7 +25,8 @@ import java.util.*;
 public class JsonBasicComparator extends AbstractJsonComparator<JsonNode> {
 
     @Override
-    public List<BriefDiffResult.BriefDiff> compare(CompareParams<JsonNode> params) {
+    public BriefDiffResult compare(CompareParams<JsonNode> params) {
+        BriefDiffResult result = new BriefDiffResult();
         JsonNode actual = params.getActual();
         JsonNode expected = params.getExpected();
         String actualText = actual.asText();
@@ -33,7 +34,8 @@ public class JsonBasicComparator extends AbstractJsonComparator<JsonNode> {
         BriefDiffResult.BriefDiff diff =
                 checkJsonNodeType(params.getCurrentPath(), actual, expected);
         if (Objects.nonNull(diff)) {
-            return Collections.singletonList(diff);
+            result.getBriefDiffs().add(diff);
+            return result;
         }
         boolean pass = false;
         switch (actual.getNodeType()) {
@@ -44,7 +46,8 @@ public class JsonBasicComparator extends AbstractJsonComparator<JsonNode> {
             case NUMBER:
                 Optional<BriefDiffResult.BriefDiff> optional = toleantCompare(params, actual, expected);
                 if (optional.isPresent()) {
-                    return Collections.singletonList(optional.get());
+                    result.getBriefDiffs().add(optional.get());
+                    return result;
                 } else {
                     BigDecimal actualNumber = new BigDecimal(actualText);
                     BigDecimal expectedNumber = new BigDecimal(expectedText);
@@ -56,7 +59,8 @@ public class JsonBasicComparator extends AbstractJsonComparator<JsonNode> {
                 Optional<BriefDiffResult.BriefDiff> diffOptional =
                         excapedJsonCompare(params, actualText, expectedText);
                 if (diffOptional.isPresent()) {
-                    return Collections.singletonList(diffOptional.get());
+                    result.getBriefDiffs().add(diffOptional.get());
+                    return result;
                 } else {
                     pass = (actualText.equals(expectedText));
                     break;
@@ -77,11 +81,11 @@ public class JsonBasicComparator extends AbstractJsonComparator<JsonNode> {
                             CompareMessageConstant.VALUE_UNEQUALS,
                             actual,
                             expected)
-                    )
-                    .build();
-            return Collections.singletonList(diff);
+                    ).build();
+                    result.getBriefDiffs().add(diff);
+                    return result;
         }
-        return Collections.emptyList();
+        return null;
     }
 
     /**
@@ -141,16 +145,16 @@ public class JsonBasicComparator extends AbstractJsonComparator<JsonNode> {
                         .expected(jsonNode2)
                         .config(excapedJson)
                         .build();
-                List<BriefDiffResult.BriefDiff> diffs = JsonComparatorFactory.build()
+                BriefDiffResult diffResult = JsonComparatorFactory.build()
                         .executeContrast(jsonNode1.getNodeType(), compareParams);
-                if (!diffs.isEmpty()) {
+                if (diffResult != null) {
                     BriefDiffResult.BriefDiff diff = BriefDiffResult.BriefDiff.builder()
                             .actual(actualText)
                             .expected(expectedText)
                             .type(DiffEnum.EXCAPED_COMPARE_NOT_EQUALS.getType())
                             .diffKey(params.getCurrentPath())
                             .reason(CompareMessageConstant.EXCAPED_COMPARE_NOT_EQUALS)
-                            .subDiffs(diffs)
+                            .subDiffs(diffResult.getBriefDiffs())
                             .build();
                     return Optional.of(diff);
                 }

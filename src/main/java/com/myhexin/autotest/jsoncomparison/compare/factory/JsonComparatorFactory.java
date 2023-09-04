@@ -54,16 +54,16 @@ public final class JsonComparatorFactory {
         return comparator;
     }
 
-    public List<BriefDiffResult.BriefDiff> execute(JsonNodeType nodeType, CompareParams<JsonNode> params) {
+    public BriefDiffResult execute(JsonNodeType nodeType, CompareParams<JsonNode> params) {
         if (params.getExpected().toString().equals(params.getActual().toString())) {
-            return Collections.emptyList();
+            return null;
         }
         log.info("开始进行两个Json之间的对比");
         long begin = System.currentTimeMillis();
-        List<BriefDiffResult.BriefDiff> diffs = executeContrast(nodeType, params);
+        BriefDiffResult result = executeContrast(nodeType, params);
         log.info("当前对比操作完成, 当前两个Json之间的的差异数为: [{}], 当前Json对比耗时: [{}]",
-                diffs.size(), System.currentTimeMillis() - begin);
-        return diffs;
+                result.getBriefDiffs().size(), System.currentTimeMillis() - begin);
+        return result;
     }
 
     /**
@@ -74,15 +74,15 @@ public final class JsonComparatorFactory {
      * @return
      */
     @SuppressWarnings("unchecked")
-    public List<BriefDiffResult.BriefDiff> executeContrast(JsonNodeType nodeType, CompareParams params) {
+    public BriefDiffResult executeContrast(JsonNodeType nodeType, CompareParams params) {
         if (isIgnorePath(params.getCurrentPath(), params.getConfig().getIgnorePath())) {
-            return Collections.emptyList();
+            return null;
         }
         JsonComparator<?> comparator = getJsonComparator(nodeType);
         comparator.beforeCompare(params);
-        List<BriefDiffResult.BriefDiff> diffs = comparator.compare(params);
+        BriefDiffResult result = comparator.compare(params);
         comparator.afterCompare();
-        return diffs.stream().filter(Objects::nonNull).collect(Collectors.toList());
+        return result;
     }
 
     /**

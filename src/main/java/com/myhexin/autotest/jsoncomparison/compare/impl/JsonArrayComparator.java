@@ -27,25 +27,26 @@ import java.util.stream.Collectors;
 public class JsonArrayComparator extends AbstractJsonComparator<ArrayNode> {
 
     @Override
-    public List<BriefDiffResult.BriefDiff> compare(CompareParams<ArrayNode> params) {
+    public BriefDiffResult compare(CompareParams<ArrayNode> params) {
+        BriefDiffResult result = new BriefDiffResult();
         JsonNode expected = params.getExpected();
         JsonNode actual = params.getActual();
         // 如果两个类型不一致则不予对比, 直接返回
         String currentPath = params.getCurrentPath();
         BriefDiffResult.BriefDiff diff = checkJsonNodeType(currentPath, actual, expected);
         if (Objects.nonNull(diff)) {
-            return Collections.singletonList(diff);
+            result.getBriefDiffs().add(diff);
+            return result;
         }
-        List<BriefDiffResult.BriefDiff> diffs = new ArrayList<>();
         int actualSize = actual.size();
         int expectedSize = expected.size();
         if (actualSize != expectedSize) {
-            diffs.add(buildLengthNotEqualDiff(currentPath, actualSize, expectedSize));
+            result.getBriefDiffs().add(buildLengthNotEqualDiff(currentPath, actualSize, expectedSize));
         }
         if (isWithDisorderPath(params, currentPath)) {
             log.info("当前路径[{}]配置了支持乱序的数组对比...", currentPath);
             List<BriefDiffResult.BriefDiff> diffList = compareWithDisorderArray(params);
-            diffs.addAll(diffList);
+            result.getBriefDiffs().addAll(diffList);
         } else {
             // 不是乱序时需要支持不同长度的对比
             int size = Math.min(actualSize, expectedSize);
@@ -55,12 +56,12 @@ public class JsonArrayComparator extends AbstractJsonComparator<ArrayNode> {
                 JsonNode node2 = expected.get(index);
                 CompareParams<JsonNode> compareParams =
                         bulidCompareParams(params, path, node1, node2);
-                List<BriefDiffResult.BriefDiff> diffList = JsonComparatorFactory.build()
+                BriefDiffResult diffResult = JsonComparatorFactory.build()
                         .executeContrast(node1.getNodeType(), compareParams);
-                diffs.addAll(diffList);
+                result.getBriefDiffs().addAll(diffResult.getBriefDiffs());
             }
         }
-        return diffs;
+        return result;
     }
 
     @Override
@@ -95,14 +96,17 @@ public class JsonArrayComparator extends AbstractJsonComparator<ArrayNode> {
                     // 如果配置了唯一键，则只有在两个数组的元素唯一键相同时进行对比, 否则不进行对比, 并且由于是唯一的, 找到了直接break即可
                     if (valueOfActualUniqueKey.equals(expectedJsonNode.get(uniqueKey))) {
                         matchedPath.add(expectedPath);
-                        List<BriefDiffResult.BriefDiff> diffList = JsonComparatorFactory.build()
+                        BriefDiffResult diffResult = JsonComparatorFactory.build()
                                 .executeContrast(actualJsonNode.getNodeType(), compareParams);
-                        for (BriefDiffResult.BriefDiff diff : diffList) {
+                        if (diffResult == null) {
+                            continue e;
+                        }
+                        for (BriefDiffResult.BriefDiff diff : diffResult.getBriefDiffs()) {
                             String reason =
                                     CharSequenceUtil.format(temp, uniqueKey, valueOfActualUniqueKey, diff.getReason());
                             diff.setReason(reason);
                         }
-                        diffs.addAll(diffList);
+                        diffs.addAll(diffResult.getBriefDiffs());
                         continue e;
                     }
                     // 如果遍历了整个预期JSON数组都没有发现这个唯一键则标记在预期中不存在这个唯一键
@@ -111,10 +115,10 @@ public class JsonArrayComparator extends AbstractJsonComparator<ArrayNode> {
                         continue e;
                     }
                 } else {
-                    List<BriefDiffResult.BriefDiff> diffList = JsonComparatorFactory.build()
+                    BriefDiffResult diffResult = JsonComparatorFactory.build()
                             .executeContrast(actualJsonNode.getNodeType(), compareParams);
                     // 如果俩个json串没有差异信息则代表在预期中匹配到了
-                    if (diffList.isEmpty()) {
+                    if (diffResult == null) {
                         matchedPath.add(expectedPath);
                         isPass = true;
                         break;
@@ -205,6 +209,7 @@ public class JsonArrayComparator extends AbstractJsonComparator<ArrayNode> {
     ) {
         BriefDiffResult.BriefDiff diff;
         diff = BriefDiffResult.BriefDiff.builder()
+                .type(DiffEnum.DISORDER_ARRAY_ACTUAL_NOT_FOUND_IN_EXCEPTED.getType())
                 .actual(actualJsonNode.toString())
                 .expected(String.format("当前uniqueKey[%s]不存在", valueOfActualUniqueKey))
                 .diffKey(actualPath)
@@ -218,6 +223,7 @@ public class JsonArrayComparator extends AbstractJsonComparator<ArrayNode> {
     ) {
         BriefDiffResult.BriefDiff diff;
         diff = BriefDiffResult.BriefDiff.builder()
+                .type(DiffEnum.DISORDER_ARRAY_ACTUAL_NOT_FOUND_IN_ACTUAL.getType())
                 .actual(String.format("当前uniqueKey[%s]不存在", valueOfExpectedUniqueKey))
                 .expected(expectedJsonNode.toString())
                 .diffKey(expectedPath)
