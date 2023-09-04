@@ -21,6 +21,12 @@ public class BriefDiffResult implements Serializable {
     @Data
     @Builder
     public static class BriefDiff implements Serializable {
+
+        /**
+         * 差异类型
+         */
+        private Integer type;
+
         /**
          * 预期值
          */

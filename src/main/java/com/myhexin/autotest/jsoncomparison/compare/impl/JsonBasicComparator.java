@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.myhexin.autotest.jsoncomparison.compare.AbstractJsonComparator;
 import com.myhexin.autotest.jsoncomparison.compare.CompareParams;
 import com.myhexin.autotest.jsoncomparison.compare.constant.CompareMessageConstant;
+import com.myhexin.autotest.jsoncomparison.compare.enums.DiffEnum;
 import com.myhexin.autotest.jsoncomparison.compare.factory.JsonComparatorFactory;
 import com.myhexin.autotest.jsoncomparison.config.JsonCompareConfig;
 import com.myhexin.autotest.jsoncomparison.result.BriefDiffResult;
@@ -71,6 +72,7 @@ public class JsonBasicComparator extends AbstractJsonComparator<JsonNode> {
                     .actual(actualText)
                     .expected(expectedText)
                     .diffKey(params.getCurrentPath())
+                    .type(DiffEnum.VALUE_UNEQUALS.getType())
                     .reason(String.format(
                             CompareMessageConstant.VALUE_UNEQUALS,
                             actual,
@@ -108,6 +110,7 @@ public class JsonBasicComparator extends AbstractJsonComparator<JsonNode> {
                     BriefDiffResult.BriefDiff diff = BriefDiffResult.BriefDiff.builder()
                             .actual(actualText)
                             .expected(expectedText)
+                            .type(DiffEnum.VALUE_UNEQUALS.getType())
                             .diffKey(params.getCurrentPath())
                             .reason(String.format(
                                     CompareMessageConstant.VALUE_NOTEQUALS_WITH_TOLEANT,
@@ -144,6 +147,7 @@ public class JsonBasicComparator extends AbstractJsonComparator<JsonNode> {
                     BriefDiffResult.BriefDiff diff = BriefDiffResult.BriefDiff.builder()
                             .actual(actualText)
                             .expected(expectedText)
+                            .type(DiffEnum.EXCAPED_COMPARE_NOT_EQUALS.getType())
                             .diffKey(params.getCurrentPath())
                             .reason(CompareMessageConstant.EXCAPED_COMPARE_NOT_EQUALS)
                             .subDiffs(diffs)

@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.myhexin.autotest.jsoncomparison.compare.AbstractJsonComparator;
 import com.myhexin.autotest.jsoncomparison.compare.CompareParams;
 import com.myhexin.autotest.jsoncomparison.compare.constant.CompareMessageConstant;
+import com.myhexin.autotest.jsoncomparison.compare.enums.DiffEnum;
 import com.myhexin.autotest.jsoncomparison.compare.factory.JsonComparatorFactory;
 import com.myhexin.autotest.jsoncomparison.result.BriefDiffResult;
 
@@ -38,9 +39,10 @@ public class JsonObjectComparator extends AbstractJsonComparator<ObjectNode> {
             String actualFieldName = actualField.getKey();
             JsonNode expectedJsonNode = expected.get(actualFieldName);
             // 如果预期中此字段为null则需要去校验下是否是预期中没有此字段
-            if (expectedJsonNode.isNull() && !expectedFieldNames.contains(actualFieldName)) {
+            if (Objects.isNull(expectedJsonNode)) {
                 diff = BriefDiffResult.BriefDiff.builder()
                         .diffKey(buildPath(currentPath, actualFieldName))
+                        .type(DiffEnum.EXPECTED_MISS_KEY.getType())
                         .reason(String.format(CompareMessageConstant.EXPECTED_MISS_KEY, actualFieldName))
                         .actual(actualField.getValue().asText())
                         .expected(String.format("预期中不存在该key: [%s]", actualFieldName))
@@ -75,8 +77,9 @@ public class JsonObjectComparator extends AbstractJsonComparator<ObjectNode> {
             if (!actualFieldNames.contains(fieldName)) {
                 BriefDiffResult.BriefDiff diff = BriefDiffResult.BriefDiff.builder()
                         .diffKey(params.getCurrentPath() + "." + fieldName)
+                        .type(DiffEnum.ACTUAL_MISS_KEY.getType())
                         .reason(String.format(CompareMessageConstant.ACTUAL_MISS_KEY, fieldName))
-                        .actual(String.format("预期中不存在该key: [%s]", fieldName))
+                        .actual(String.format("实际中不存在该key: [%s]", fieldName))
                         .expected(params.getExpected().get(fieldName).toString())
                         .build();
                 briefDiffs.add(diff);

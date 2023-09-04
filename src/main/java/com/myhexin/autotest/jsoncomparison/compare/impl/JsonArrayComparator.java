@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.node.JsonNodeType;
 import com.myhexin.autotest.jsoncomparison.compare.AbstractJsonComparator;
 import com.myhexin.autotest.jsoncomparison.compare.CompareParams;
 import com.myhexin.autotest.jsoncomparison.compare.constant.CompareMessageConstant;
+import com.myhexin.autotest.jsoncomparison.compare.enums.DiffEnum;
 import com.myhexin.autotest.jsoncomparison.compare.factory.JsonComparatorFactory;
 import com.myhexin.autotest.jsoncomparison.config.JsonCompareConfig;
 import com.myhexin.autotest.jsoncomparison.result.BriefDiffResult;
@@ -75,6 +76,7 @@ public class JsonArrayComparator extends AbstractJsonComparator<ArrayNode> {
         String uniqueKey = params.getConfig().getArrayWithDisorderUniqueKey(currentPath);
         ArrayList<String> matchedPath = new ArrayList<>();
         JsonNode valueOfActualUniqueKey = null;
+        String temp = "当前唯一键[{}][{}], {}";
         e:
         for (int i = 0; i < actual.size(); i++) {
             JsonNode actualJsonNode = actual.get(i);
@@ -95,16 +97,13 @@ public class JsonArrayComparator extends AbstractJsonComparator<ArrayNode> {
                         matchedPath.add(expectedPath);
                         List<BriefDiffResult.BriefDiff> diffList = JsonComparatorFactory.build()
                                 .executeContrast(actualJsonNode.getNodeType(), compareParams);
-//                        String temp = "当前唯一键[{}][{}], {}";
-//                        for (BriefDiffResult.BriefDiff diff : diffs) {
-//                            String reason = diff.getReason();
-//                            String finalReason = CharSequenceUtil.format(temp, uniqueKey, valueOfActualUniqueKey, reason);
-//                            diff.setReason(finalReason);
-//                        }
+                        for (BriefDiffResult.BriefDiff diff : diffList) {
+                            String reason =
+                                    CharSequenceUtil.format(temp, uniqueKey, valueOfActualUniqueKey, diff.getReason());
+                            diff.setReason(reason);
+                        }
                         diffs.addAll(diffList);
-                        // 这里直接置为true, 因为已经在上面添加过了diff信息, 外层循环中不需要再添加了
-                        isPass = true;
-                        break;
+                        continue e;
                     }
                     // 如果遍历了整个预期JSON数组都没有发现这个唯一键则标记在预期中不存在这个唯一键
                     if (j + 1 == expected.size()) {
@@ -130,7 +129,7 @@ public class JsonArrayComparator extends AbstractJsonComparator<ArrayNode> {
         // 再次遍历预期数组, 防止有元素在预期中存在而在实际中不存在
         for (int i = 0; i < expected.size(); i++) {
             String expectedPath = currentPath + "[" + i + "]";
-            if (matchedPath.contains(expectedPath)){
+            if (matchedPath.contains(expectedPath)) {
                 continue;
             }
             JsonNode expectedjsonNode = expected.get(i);
@@ -180,6 +179,7 @@ public class JsonArrayComparator extends AbstractJsonComparator<ArrayNode> {
         diff = BriefDiffResult.BriefDiff.builder()
                 .diffKey(actualPath)
                 .reason(CompareMessageConstant.DISORDER_ARRAY_ACTUAL_NOT_FOUND_IN_EXCEPTED)
+                .type(DiffEnum.DISORDER_ARRAY_ACTUAL_NOT_FOUND_IN_EXCEPTED.getType())
                 .actual(actualJsonNode.toString())
                 .expected(expected.toString())
                 .build();
@@ -193,6 +193,7 @@ public class JsonArrayComparator extends AbstractJsonComparator<ArrayNode> {
         diff = BriefDiffResult.BriefDiff.builder()
                 .diffKey(expectedPath)
                 .reason(CompareMessageConstant.DISORDER_ARRAY_ACTUAL_NOT_FOUND_IN_ACTUAL)
+                .type(DiffEnum.DISORDER_ARRAY_ACTUAL_NOT_FOUND_IN_ACTUAL.getType())
                 .actual(actual.toString())
                 .expected(expectedJsonNode.toString())
                 .build();
@@ -231,6 +232,7 @@ public class JsonArrayComparator extends AbstractJsonComparator<ArrayNode> {
                 .actual("实际的列表长度为: " + actualSize)
                 .expected("预期的列表长度为: " + expectedSize)
                 .diffKey(currentPath)
+                .type(DiffEnum.LIST_LENGTH_NOT_EQUALS.getType())
                 .reason(String.format(CompareMessageConstant.LIST_LENGTH_NOT_EQUALS, actualSize, expectedSize))
                 .build();
         return diff;

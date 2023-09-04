@@ -5,13 +5,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeType;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.myhexin.autotest.jsoncomparison.compare.constant.CompareMessageConstant;
+import com.myhexin.autotest.jsoncomparison.compare.enums.DiffEnum;
 import com.myhexin.autotest.jsoncomparison.result.BriefDiffResult;
 import com.myhexin.autotest.jsoncomparison.utils.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
 
 
 /**
@@ -43,18 +40,24 @@ public abstract class AbstractJsonComparator<T extends JsonNode> implements Json
         // 如果俩个jsonNode对象的type不一致则需要校验
         if (actual.getNodeType() != expected.getNodeType()) {
             String reason;
+            Integer type;
             if (actual.getNodeType() == JsonNodeType.NULL) {
                 reason = String.format(CompareMessageConstant.ONLY_IN_EXPECTED, expected.asText());
+                type = DiffEnum.ONLY_IN_EXPECTED.getType();
             } else if (expected.getNodeType() == JsonNodeType.NULL) {
                 reason = String.format(CompareMessageConstant.ONLY_IN_ACTUAL, actual.asText());
+                type = DiffEnum.ONLY_IN_ACTUAL.getType();
             } else {
                 reason = String.format(
-                        CompareMessageConstant.TYPE_UNEQUALS, actual.getNodeType(), expected.getNodeType()
+                        CompareMessageConstant.TYPE_UNEQUALS, actual.getNodeType(), expected.getNodeType(),
+                        actual, expected
                 );
+                type = DiffEnum.TYPE_UNEQUALS.getType();
             }
             return BriefDiffResult.BriefDiff.builder()
                     .actual(actual.asText())
                     .expected(expected.asText())
+                    .type(type)
                     .diffKey(path)
                     .reason(reason)
                     .build();
@@ -83,13 +86,5 @@ public abstract class AbstractJsonComparator<T extends JsonNode> implements Json
             return JsonUtils.getJsonNode(jsonStr);
         }
         return JsonUtils.getJsonNodeByJmesPath(jsonStr, jmesPath);
-    }
-
-    protected ObjectNode getObjectNodeByPath(String jsonStr, String path) {
-        JsonNode node = getJsonNodeByPath(jsonStr, path);
-        if (node.isObject()) {
-            return ((ObjectNode) node);
-        }
-        throw new IllegalArgumentException("该Json不是对象！当前类型: " + node.getNodeType());
     }
 }

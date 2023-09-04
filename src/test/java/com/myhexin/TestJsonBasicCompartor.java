@@ -21,7 +21,7 @@ import java.util.List;
 public class TestJsonBasicCompartor {
 
     @Test
-    public void testNull() throws JSONException {
+    public void testNull() {
         JsonBasicComparator comparator = new JsonBasicComparator();
         CompareParams<JsonNode> params = CompareParams.<JsonNode>builder()
                 .actual(NullNode.instance)
@@ -32,7 +32,7 @@ public class TestJsonBasicCompartor {
     }
 
     @Test
-    public void testInt() throws JSONException {
+    public void testInt() {
         JsonBasicComparator comparator = new JsonBasicComparator();
         CompareParams<JsonNode> params = CompareParams.<JsonNode>builder()
                 .actual(IntNode.valueOf(1))
@@ -43,7 +43,7 @@ public class TestJsonBasicCompartor {
     }
 
     @Test
-    public void testBoolean(){
+    public void testBoolean() {
         JsonBasicComparator comparator = new JsonBasicComparator();
         CompareParams<JsonNode> params = CompareParams.<JsonNode>builder()
                 .actual(BooleanNode.valueOf(true))
@@ -54,7 +54,7 @@ public class TestJsonBasicCompartor {
     }
 
     @Test
-    public void testString(){
+    public void testString() {
         JsonBasicComparator comparator = new JsonBasicComparator();
         CompareParams<JsonNode> params = CompareParams.<JsonNode>builder()
                 .actual(TextNode.valueOf("baoyonghua"))
