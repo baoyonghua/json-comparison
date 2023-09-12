@@ -3,11 +3,9 @@ package com.myhexin.autotest.jsoncomparison.compare;
 import cn.hutool.core.text.CharSequenceUtil;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeType;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.myhexin.autotest.jsoncomparison.compare.constant.CompareMessageConstant;
 import com.myhexin.autotest.jsoncomparison.compare.enums.DiffEnum;
 import com.myhexin.autotest.jsoncomparison.result.BriefDiffResult;
-import com.myhexin.autotest.jsoncomparison.utils.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
 
 
@@ -40,24 +38,24 @@ public abstract class AbstractJsonComparator<T extends JsonNode> implements Json
         // 如果俩个jsonNode对象的type不一致则需要校验
         if (actual.getNodeType() != expected.getNodeType()) {
             String reason;
-            Integer type;
+            DiffEnum diffEnum;
             if (actual.getNodeType() == JsonNodeType.NULL) {
                 reason = String.format(CompareMessageConstant.ONLY_IN_EXPECTED, expected.asText());
-                type = DiffEnum.ONLY_IN_EXPECTED.getType();
+                diffEnum = DiffEnum.ONLY_IN_EXPECTED;
             } else if (expected.getNodeType() == JsonNodeType.NULL) {
                 reason = String.format(CompareMessageConstant.ONLY_IN_ACTUAL, actual.asText());
-                type = DiffEnum.ONLY_IN_ACTUAL.getType();
+                diffEnum = DiffEnum.ONLY_IN_ACTUAL;
             } else {
                 reason = String.format(
-                        CompareMessageConstant.TYPE_UNEQUALS, actual.getNodeType(), expected.getNodeType(),
-                        actual, expected
+                        CompareMessageConstant.TYPE_UNEQUALS, actual.getNodeType(), expected.getNodeType()
                 );
-                type = DiffEnum.TYPE_UNEQUALS.getType();
+                diffEnum = DiffEnum.TYPE_UNEQUALS;
             }
             return BriefDiffResult.BriefDiff.builder()
                     .actual(actual.asText())
                     .expected(expected.asText())
-                    .type(type)
+                    .type(diffEnum.getType())
+                    .msg(diffEnum.getMsg())
                     .diffKey(path)
                     .reason(reason)
                     .build();

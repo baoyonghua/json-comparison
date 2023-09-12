@@ -11,7 +11,7 @@ public final class CompareMessageConstant {
     public static final String ONLY_IN_EXPECTED = "字段只在预期中存在值, 在预期中该字段的值: %s，在实际中该字段的值: null";
 
     public static final String TYPE_UNEQUALS =
-            "实际值与预期值的类型不符合, 实际值类型: [%s], 预期值类型: [%s], 实际值: %s, 预期值: %s";
+            "实际值与预期值的类型不符合, 实际值类型: [%s], 预期值类型: [%s]";
 
     public static final String VALUE_UNEQUALS = "实际值和预期值不一致, 实际值: %s, 预期值: %s";
 

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeType;
+import com.fasterxml.jackson.databind.node.TextNode;
 import com.myhexin.autotest.jsoncomparison.exception.JsonParseException;
 import io.burt.jmespath.Expression;
 import io.burt.jmespath.jackson.JacksonRuntime;
@@ -37,8 +38,8 @@ public final class JsonUtils {
         try {
             return OBJECT_MAPPER.readTree(str);
         } catch (IOException e) {
-            log.error("解析Json失败, 可能并不是Json类型的字符串！", e);
-            throw new JsonParseException("解析Json失败, 可能并不是Json类型的字符串！", e);
+            log.error("解析Json失败, 可能并不是Json类型的字符串！");
+            return TextNode.valueOf(str);
         }
     }
 

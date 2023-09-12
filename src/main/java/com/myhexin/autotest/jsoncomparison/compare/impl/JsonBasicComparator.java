@@ -1,6 +1,7 @@
 package com.myhexin.autotest.jsoncomparison.compare.impl;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.JsonNodeType;
 import com.myhexin.autotest.jsoncomparison.compare.AbstractJsonComparator;
 import com.myhexin.autotest.jsoncomparison.compare.CompareParams;
 import com.myhexin.autotest.jsoncomparison.compare.constant.CompareMessageConstant;
@@ -35,6 +36,8 @@ public class JsonBasicComparator extends AbstractJsonComparator<JsonNode> {
                 checkJsonNodeType(params.getCurrentPath(), actual, expected);
         if (Objects.nonNull(diff)) {
             result.getBriefDiffs().add(diff);
+            result.setChildExpectedJson(params.getExpected());
+            result.setChildActualJson(params.getActual());
             return result;
         }
         boolean pass = false;
@@ -44,7 +47,7 @@ public class JsonBasicComparator extends AbstractJsonComparator<JsonNode> {
                 pass = true;
                 break;
             case NUMBER:
-                Optional<BriefDiffResult.BriefDiff> optional = toleantCompare(params, actual, expected);
+                Optional<BriefDiffResult.BriefDiff> optional = toleantCompare(params, actualText, expectedText);
                 if (optional.isPresent()) {
                     result.getBriefDiffs().add(optional.get());
                     return result;
@@ -77,36 +80,37 @@ public class JsonBasicComparator extends AbstractJsonComparator<JsonNode> {
                     .expected(expectedText)
                     .diffKey(params.getCurrentPath())
                     .type(DiffEnum.VALUE_UNEQUALS.getType())
+                    .msg(DiffEnum.VALUE_UNEQUALS.getMsg())
                     .reason(String.format(
                             CompareMessageConstant.VALUE_UNEQUALS,
                             actual,
                             expected)
                     ).build();
-                    result.getBriefDiffs().add(diff);
-                    return result;
+            result.getBriefDiffs().add(diff);
+            result.setChildExpectedJson(params.getExpected());
+            result.setChildActualJson(params.getActual());
         }
-        return null;
+        return result;
     }
 
     /**
      * 支持容差的对比
      *
      * @param params
-     * @param actual
-     * @param expected
+     * @param actualText
+     * @param expectedText
      * @return
      */
     private Optional<BriefDiffResult.BriefDiff> toleantCompare(
             CompareParams<JsonNode> params,
-            JsonNode actual,
-            JsonNode expected
+            String actualText,
+            String expectedText
     ) {
-        String actualText = actual.asText();
-        String expectedText = expected.asText();
         BigDecimal actualNumber = new BigDecimal(actualText);
         BigDecimal expectedNumber = new BigDecimal(expectedText);
         for (JsonCompareConfig.ToleantConfig toleantConfig : params.getConfig().getToleantPath()) {
             if (toleantConfig.getPath().equals(params.getCurrentPath())) {
+                log.info("当前路径[{}]配置了允许容差, 允许的范围为: {}", params.getCurrentPath(), toleantConfig.getToleant());
                 BigDecimal toleant = new BigDecimal(toleantConfig.getToleant());
                 BigDecimal max = actualNumber.add(toleant);
                 BigDecimal min = actualNumber.subtract(toleant);
@@ -118,9 +122,9 @@ public class JsonBasicComparator extends AbstractJsonComparator<JsonNode> {
                             .diffKey(params.getCurrentPath())
                             .reason(String.format(
                                     CompareMessageConstant.VALUE_NOTEQUALS_WITH_TOLEANT,
-                                    toleant.toString(),
-                                    actual,
-                                    expected)
+                                    toleant,
+                                    actualText,
+                                    expectedText)
                             ).build();
                     return Optional.of(diff);
                 }
@@ -152,6 +156,7 @@ public class JsonBasicComparator extends AbstractJsonComparator<JsonNode> {
                             .actual(actualText)
                             .expected(expectedText)
                             .type(DiffEnum.EXCAPED_COMPARE_NOT_EQUALS.getType())
+                            .msg(DiffEnum.EXCAPED_COMPARE_NOT_EQUALS.getMsg())
                             .diffKey(params.getCurrentPath())
                             .reason(CompareMessageConstant.EXCAPED_COMPARE_NOT_EQUALS)
                             .subDiffs(diffResult.getBriefDiffs())

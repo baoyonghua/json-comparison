@@ -56,7 +56,7 @@ public final class JsonComparatorFactory {
 
     public BriefDiffResult execute(JsonNodeType nodeType, CompareParams<JsonNode> params) {
         if (params.getExpected().toString().equals(params.getActual().toString())) {
-            return null;
+            return new BriefDiffResult();
         }
         log.info("开始进行两个Json之间的对比");
         long begin = System.currentTimeMillis();

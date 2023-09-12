@@ -35,6 +35,11 @@ public class JsonCompareConfig implements Serializable {
     private Set<ExcapedJson> excapedJsonPath = new HashSet<>();
 
     /**
+     * todo 支持字段映射
+     */
+    private Set<FieldMapping> feildMappings = new HashSet<>();
+
+    /**
      * 需要忽略容差的路径集合
      */
     private Set<ToleantConfig> toleantPath = new HashSet<>();
@@ -116,6 +121,7 @@ public class JsonCompareConfig implements Serializable {
     }
 
     @Data
+    @Builder
     public static class ExcapedJson extends JsonCompareConfig {
         private String path;
 
@@ -128,6 +134,38 @@ public class JsonCompareConfig implements Serializable {
                 return false;
             }
             ExcapedJson other = (ExcapedJson) o;
+            return Objects.equals(path, other.path);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(path);
+        }
+    }
+
+    @Data
+    @Builder
+    public static class FieldMapping implements Serializable {
+
+        /**
+         * 当前实际的JsonPath
+         */
+        private String path;
+
+        /**
+         * 需要进行映射的key
+         */
+        private String mappingKey;
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (!(o instanceof FieldMapping)) {
+                return false;
+            }
+            FieldMapping other = (FieldMapping) o;
             return Objects.equals(path, other.path);
         }
 

@@ -2,8 +2,11 @@ package com.myhexin.autotest.jsoncomparison.result;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.myhexin.autotest.jsoncomparison.compare.enums.DiffEnum;
 import lombok.Builder;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -33,6 +36,8 @@ public class BriefDiffResult implements Serializable {
          * 差异类型
          */
         private Integer type;
+
+        private String msg;
 
         /**
          * 预期值
