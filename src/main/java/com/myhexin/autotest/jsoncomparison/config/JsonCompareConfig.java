@@ -44,6 +44,11 @@ public class JsonCompareConfig implements Serializable {
      */
     private Set<ToleantConfig> toleantPath = new HashSet<>();
 
+    /**
+     * 根据路径获取到当前路径所配置的唯一键
+     * @param path
+     * @return
+     */
     public String getArrayWithDisorderUniqueKey(String path) {
         if (arrayWithDisorderPath.isEmpty()) {
             return null;

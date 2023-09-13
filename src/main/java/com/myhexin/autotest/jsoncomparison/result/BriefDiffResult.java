@@ -1,5 +1,6 @@
 package com.myhexin.autotest.jsoncomparison.result;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.myhexin.autotest.jsoncomparison.compare.enums.DiffEnum;
@@ -22,10 +23,13 @@ public class BriefDiffResult implements Serializable {
     /**
      * 当前的对比所产生的差异信息
      */
+    @JsonProperty("brief_diffs")
     private List<BriefDiff> briefDiffs = new ArrayList<>();
 
+    @JsonProperty("child_actual_json")
     private JsonNode childActualJson;
 
+    @JsonProperty("child_expected_json")
     private JsonNode childExpectedJson;
 
     @Data
@@ -37,6 +41,9 @@ public class BriefDiffResult implements Serializable {
          */
         private Integer type;
 
+        /**
+         * 当前差异类型的描述
+         */
         private String msg;
 
         /**
@@ -52,6 +59,7 @@ public class BriefDiffResult implements Serializable {
         /**
          * 产生差异的key, 针对于实际的json而言
          */
+        @JsonProperty("diff_key")
         private String diffKey;
 
         /**
@@ -60,8 +68,9 @@ public class BriefDiffResult implements Serializable {
         private String reason;
 
         /**
-         * 子差异信息(针对需要进行转移的字符串)
+         * 子差异信息(针对需要进行转义的字符串)
          */
+        @JsonProperty("sub_diffs")
         private List<BriefDiff> subDiffs;
     }
 }

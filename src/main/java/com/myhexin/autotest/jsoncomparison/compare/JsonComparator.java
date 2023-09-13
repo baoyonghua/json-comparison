@@ -19,12 +19,14 @@ public interface JsonComparator<T extends JsonNode> {
 
     String ROOT_PATH = "root";
 
+    String SPLIT_POINT = ".";
+
     /**
      * 在对比之前进行一些操作
      *
      * @param params json对比所需要的参数
      */
-    void beforeCompare(CompareParams<T> params);
+    void beforeCompare(CompareParams<?> params);
 
     /**
      * 执行对比

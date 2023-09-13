@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public final class JsonComparatorFactory {
 
-    private final static Map<JsonNodeType, JsonComparator<?>> COMPARATOR_MAP =
+    private final static Map<JsonNodeType, JsonComparator<? extends JsonNode>> COMPARATOR_MAP =
             new HashMap<>(8);
 
     private JsonComparatorFactory() {
@@ -33,11 +33,11 @@ public final class JsonComparatorFactory {
         return new JsonComparatorFactory();
     }
 
-    public JsonComparator<?> getJsonComparator(JsonNodeType nodeType) {
+    public JsonComparator<? extends JsonNode> getJsonComparator(JsonNodeType nodeType) {
         if (COMPARATOR_MAP.get(nodeType) != null) {
             return COMPARATOR_MAP.get(nodeType);
         }
-        JsonComparator<?> comparator;
+        JsonComparator<? extends JsonNode> comparator;
         switch (nodeType) {
             case ARRAY:
                 comparator = new JsonArrayComparator();
@@ -78,7 +78,7 @@ public final class JsonComparatorFactory {
         if (isIgnorePath(params.getCurrentPath(), params.getConfig().getIgnorePath())) {
             return null;
         }
-        JsonComparator<?> comparator = getJsonComparator(nodeType);
+        JsonComparator<? extends JsonNode> comparator = getJsonComparator(nodeType);
         comparator.beforeCompare(params);
         BriefDiffResult result = comparator.compare(params);
         comparator.afterCompare();

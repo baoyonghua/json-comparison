@@ -73,11 +73,11 @@ public class TestJsonCompare {
 
         JsonCompareConfig config = new JsonCompareConfig();
         JsonCompareConfig.ArrayWithDisorderConfig arrayWithDisorderConfig = JsonCompareConfig.ArrayWithDisorderConfig.builder()
-                .path("root.data.list1").uniqueKey("date1").build();
+                .path("root.data.records1").uniqueKey("legal_person1").build();
         JsonCompareConfig.FieldMapping fieldMapping = JsonCompareConfig.FieldMapping.builder()
                 .path("root.data.list[*].cate").mappingKey("cate1").build();
         JsonCompareConfig.FieldMapping fieldMapping1 = JsonCompareConfig.FieldMapping.builder()
-                .path("root.code").mappingKey("status_code").build();
+                .path("root.data.records[*].case_info.uriq").mappingKey("uri25").build();
         HashSet<JsonCompareConfig.ArrayWithDisorderConfig> arrayWithDisorderConfigs = new HashSet<>();
         HashSet<JsonCompareConfig.FieldMapping> fieldMappings = new HashSet<>();
         arrayWithDisorderConfigs.add(arrayWithDisorderConfig);

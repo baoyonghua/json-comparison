@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeType;
 import com.myhexin.autotest.jsoncomparison.compare.constant.CompareMessageConstant;
 import com.myhexin.autotest.jsoncomparison.compare.enums.DiffEnum;
+import com.myhexin.autotest.jsoncomparison.compare.factory.JsonComparatorFactory;
 import com.myhexin.autotest.jsoncomparison.result.BriefDiffResult;
 import lombok.extern.slf4j.Slf4j;
 
@@ -18,10 +19,14 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public abstract class AbstractJsonComparator<T extends JsonNode> implements JsonComparator<T> {
 
+    protected static final JsonComparatorFactory COMPARATOR_FACTORY = JsonComparatorFactory.build();
+
     @Override
-    public void beforeCompare(CompareParams<T> params) {
+    public void beforeCompare(CompareParams<?> params) {
         if (CharSequenceUtil.isBlank(params.getCurrentPath())) {
-            params.setCurrentPath(JsonComparator.ROOT_PATH);
+            params.setCurrentPath(ROOT_PATH);
+        } else if (!params.getCurrentPath().startsWith(JsonComparator.ROOT_PATH)) {
+            params.setCurrentPath(ROOT_PATH + SPLIT_POINT + params.getCurrentPath());
         }
     }
 
@@ -33,8 +38,7 @@ public abstract class AbstractJsonComparator<T extends JsonNode> implements Json
      * @param expected 预期的Json
      * @return
      */
-    protected BriefDiffResult.BriefDiff checkJsonNodeType(
-            String path, JsonNode actual, JsonNode expected) {
+    protected BriefDiffResult.BriefDiff checkJsonNodeType(String path, JsonNode actual, JsonNode expected) {
         // 如果俩个jsonNode对象的type不一致则需要校验
         if (actual.getNodeType() != expected.getNodeType()) {
             String reason;

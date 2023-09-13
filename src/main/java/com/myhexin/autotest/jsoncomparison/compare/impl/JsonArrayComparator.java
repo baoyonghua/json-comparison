@@ -10,7 +10,6 @@ import com.myhexin.autotest.jsoncomparison.compare.AbstractJsonComparator;
 import com.myhexin.autotest.jsoncomparison.compare.CompareParams;
 import com.myhexin.autotest.jsoncomparison.compare.constant.CompareMessageConstant;
 import com.myhexin.autotest.jsoncomparison.compare.enums.DiffEnum;
-import com.myhexin.autotest.jsoncomparison.compare.factory.JsonComparatorFactory;
 import com.myhexin.autotest.jsoncomparison.config.JsonCompareConfig;
 import com.myhexin.autotest.jsoncomparison.result.BriefDiffResult;
 import lombok.extern.slf4j.Slf4j;
@@ -28,63 +27,68 @@ import java.util.stream.Collectors;
 @Slf4j
 public class JsonArrayComparator extends AbstractJsonComparator<ArrayNode> {
 
+    private static final String UNIQUE_KEY_REASON_TEMP = "当前唯一键[{}][{}], {}";
+    private static final String UNIQUE_KEY_INDEX_TEMP = "当前唯一键[{}][{}], 下标为[{}]";
+    private static final String UNIQUE_KEY_NOT_EXIST_TEMP = "当前唯一键[{}][{}]不存在";
+    private static final String INDEX_TEMP = "下标为{}";
+    private static final String PATH_TEMP = "{}[{}]";
+
     @Override
     public BriefDiffResult compare(CompareParams<ArrayNode> params) {
         BriefDiffResult result = new BriefDiffResult();
-        JsonNode expected = params.getExpected();
-        JsonNode actual = params.getActual();
-        // 如果两个类型不一致则不予对比, 直接返回
-        String currentPath = params.getCurrentPath();
-        checkType(result, expected, actual, currentPath);
+        checkType(result, params);
         if (!result.getBriefDiffs().isEmpty()) {
             return result;
         }
-        int actualSize = actual.size();
-        int expectedSize = expected.size();
+        int actualSize = params.getActual().size();
+        int expectedSize = params.getExpected().size();
         if (actualSize != expectedSize) {
-            BriefDiffResult.BriefDiff diff = buildLengthNotEqualDiff(currentPath, actualSize, expectedSize);
-            result.getBriefDiffs().add(diff);
+            result.getBriefDiffs().add(buildLengthNotEqualDiff(params.getCurrentPath(), actualSize, expectedSize));
         }
         int size = Math.min(actualSize, expectedSize);
         if (size == 0) {
-            ArrayNode childActualJson = JsonNodeFactory.instance.arrayNode();
-            ArrayNode childExpectedJson = JsonNodeFactory.instance.arrayNode();
-            childActualJson.addAll(params.getActual());
-            childExpectedJson.addAll(params.getExpected());
+            ArrayNode childActualJson = JsonNodeFactory.instance.arrayNode().addAll(params.getActual());
+            ArrayNode childExpectedJson = JsonNodeFactory.instance.arrayNode().addAll(params.getExpected());
             result.setChildActualJson(childActualJson);
             result.setChildExpectedJson(childExpectedJson);
             return result;
         }
-        if (isWithDisorderPath(params, currentPath)) {
-            log.info("当前路径[{}]配置了支持乱序的数组对比...", currentPath);
+        if (isWithDisorderPath(params, params.getCurrentPath())) {
+            log.info("当前路径[{}]配置了支持乱序的数组对比...", params.getCurrentPath());
             compareWithDisorderArray(params, result);
         } else {
-            ObjectNode childActualJson = JsonNodeFactory.instance.objectNode();
-            ObjectNode childExpectedJson = JsonNodeFactory.instance.objectNode();
-            for (int index = 0; index < size; index++) {
-                String nowIndex = "下标为" + index;
-                String path = currentPath + "[" + index + "]";
-                JsonNode node1 = actual.get(index);
-                JsonNode node2 = expected.get(index);
-                CompareParams<JsonNode> compareParams =
-                        bulidCompareParams(params, path, node1, node2);
-                BriefDiffResult diffResult = JsonComparatorFactory.build()
-                        .executeContrast(node1.getNodeType(), compareParams);
-                if (Objects.isNull(diffResult) || Objects.isNull(diffResult.getBriefDiffs())
-                        || diffResult.getBriefDiffs().isEmpty()) {
-                    continue;
-                }
-                result.getBriefDiffs().addAll(diffResult.getBriefDiffs());
-                childActualJson.set(nowIndex, diffResult.getChildActualJson());
-                childExpectedJson.set(nowIndex, diffResult.getChildExpectedJson());
-            }
-            result.setChildActualJson(childActualJson);
-            result.setChildExpectedJson(childExpectedJson);
+            compareArray(params, result, size);
         }
         return result;
     }
 
-    private void checkType(BriefDiffResult result, JsonNode expected, JsonNode actual, String currentPath) {
+    private void compareArray(CompareParams<ArrayNode> params, BriefDiffResult result, int size) {
+        ObjectNode childActualJson = JsonNodeFactory.instance.objectNode();
+        ObjectNode childExpectedJson = JsonNodeFactory.instance.objectNode();
+        for (int index = 0; index < size; index++) {
+            String path = CharSequenceUtil.format(PATH_TEMP, params.getCurrentPath(), index);
+            JsonNode node1 = params.getActual().get(index);
+            JsonNode node2 = params.getExpected().get(index);
+            CompareParams<JsonNode> compareParams =
+                    bulidCompareParams(params, path, node1, node2);
+            BriefDiffResult diffResult = COMPARATOR_FACTORY.executeContrast(node1.getNodeType(), compareParams);
+            if (Objects.isNull(diffResult) || Objects.isNull(diffResult.getBriefDiffs())
+                    || diffResult.getBriefDiffs().isEmpty()) {
+                continue;
+            }
+            String nowIndex = getIndex(index);
+            result.getBriefDiffs().addAll(diffResult.getBriefDiffs());
+            childActualJson.set(nowIndex, diffResult.getChildActualJson());
+            childExpectedJson.set(nowIndex, diffResult.getChildExpectedJson());
+        }
+        result.setChildActualJson(childActualJson);
+        result.setChildExpectedJson(childExpectedJson);
+    }
+
+    private void checkType(BriefDiffResult result, CompareParams<ArrayNode> params) {
+        JsonNode expected = params.getExpected();
+        JsonNode actual = params.getActual();
+        String currentPath = params.getCurrentPath();
         BriefDiffResult.BriefDiff diff = checkJsonNodeType(currentPath, actual, expected);
         if (Objects.nonNull(diff)) {
             result.getBriefDiffs().add(diff);
@@ -106,41 +110,38 @@ public class JsonArrayComparator extends AbstractJsonComparator<ArrayNode> {
         JsonNode expected = params.getExpected();
         ArrayList<String> matchedPath = new ArrayList<>();
         JsonNode valueOfActualUniqueKey = null;
-        String temp = "当前唯一键[{}][{}], {}";
-        String indexTemp = "当前唯一键[{}][{}], 下标为[{}]";
-
         String uniqueKey = params.getConfig().getArrayWithDisorderUniqueKey(currentPath);
+
         e:
         for (int i = 0; i < actual.size(); i++) {
             JsonNode actualJsonNode = actual.get(i);
             boolean isPass = false;
-            String actualPath = currentPath + "[" + i + "]";
-            if (CharSequenceUtil.isNotBlank(uniqueKey)
-                    && actualJsonNode.getNodeType().equals(JsonNodeType.OBJECT)) {
+            String actualPath = CharSequenceUtil.format(PATH_TEMP, currentPath, i);
+            String actualIndexString = getIndex(i);
+            if (CharSequenceUtil.isNotBlank(uniqueKey) && actualJsonNode.getNodeType().equals(JsonNodeType.OBJECT)) {
                 valueOfActualUniqueKey = actualJsonNode.get(uniqueKey);
+                actualIndexString = getUniqueKeyIndex(uniqueKey, i, valueOfActualUniqueKey);
             }
-            String actualIndexString = CharSequenceUtil.format(indexTemp, uniqueKey, valueOfActualUniqueKey, i);
             for (int j = 0; j < expected.size(); j++) {
-                String expectedPath = currentPath + "[" + j + "]";
+                String expectedPath = CharSequenceUtil.format(PATH_TEMP, currentPath, j);
                 JsonNode expectedJsonNode = expected.get(j);
                 CompareParams<JsonNode> compareParams =
                         bulidCompareParams(params, actualPath, actualJsonNode, expectedJsonNode);
                 if (Objects.nonNull(valueOfActualUniqueKey)) {
                     // 如果配置了唯一键，则只有在两个数组的元素唯一键相同时进行对比, 否则不进行对比, 并且由于是唯一的, 找到了直接break即可
                     if (valueOfActualUniqueKey.equals(expectedJsonNode.get(uniqueKey))) {
-                        String expectedIndexString =
-                                CharSequenceUtil.format(indexTemp, uniqueKey, valueOfActualUniqueKey, j);
                         matchedPath.add(expectedPath);
-                        BriefDiffResult diffResult = JsonComparatorFactory.build()
-                                .executeContrast(actualJsonNode.getNodeType(), compareParams);
+                        String expectedIndexString = getUniqueKeyIndex(uniqueKey, j, valueOfActualUniqueKey);
+                        BriefDiffResult diffResult =
+                                COMPARATOR_FACTORY.executeContrast(actualJsonNode.getNodeType(), compareParams);
                         if (diffResult == null || diffResult.getBriefDiffs().isEmpty()) {
                             continue e;
                         }
-                        for (BriefDiffResult.BriefDiff diff : diffResult.getBriefDiffs()) {
-                            diff.setReason(
-                                    CharSequenceUtil.format(temp, uniqueKey, valueOfActualUniqueKey, diff.getReason())
-                            );
-                        }
+                        JsonNode finalValueOfActualUniqueKey = valueOfActualUniqueKey;
+                        diffResult.getBriefDiffs().forEach(d ->
+                                d.setReason(CharSequenceUtil.format(UNIQUE_KEY_REASON_TEMP, uniqueKey, finalValueOfActualUniqueKey, d.getReason()))
+                        );
+
                         childActualJson.set(actualIndexString, diffResult.getChildActualJson());
                         childExpectedJson.set(expectedIndexString, diffResult.getChildExpectedJson());
                         result.getBriefDiffs().addAll(diffResult.getBriefDiffs());
@@ -152,15 +153,13 @@ public class JsonArrayComparator extends AbstractJsonComparator<ArrayNode> {
                                 buildElementNotFoundInExpectedDiff(actualPath, valueOfActualUniqueKey, actualJsonNode)
                         );
                         childActualJson.set(actualIndexString, actualJsonNode);
-                        childExpectedJson.set(
-                                CharSequenceUtil.format(indexTemp, uniqueKey, valueOfActualUniqueKey, -1),
-                                null
-                        );
+                        childExpectedJson.set(getUniqueKeyNotExist(valueOfActualUniqueKey, uniqueKey), null);
                         continue e;
                     }
                 } else {
-                    BriefDiffResult diffResult = JsonComparatorFactory.build()
-                            .executeContrast(actualJsonNode.getNodeType(), compareParams);
+                    // 未匹配到唯一键或者未设置唯一键则走普通的对比逻辑, 双重for遍历每个数组元素
+                    BriefDiffResult diffResult =
+                            COMPARATOR_FACTORY.executeContrast(actualJsonNode.getNodeType(), compareParams);
                     // 如果俩个json串没有差异信息则代表在预期中匹配到了
                     if (diffResult == null || diffResult.getBriefDiffs().isEmpty()) {
                         matchedPath.add(expectedPath);
@@ -174,40 +173,43 @@ public class JsonArrayComparator extends AbstractJsonComparator<ArrayNode> {
                 result.getBriefDiffs().add(
                         buildElementNotFoundInExceptedDiff(expected, actualPath, actualJsonNode)
                 );
-                if (Objects.isNull(valueOfActualUniqueKey)) {
-                    actualIndexString = "下标为" + i;
-                }
                 childActualJson.set(actualIndexString, actualJsonNode);
             }
         }
         // 再次遍历预期数组, 防止有元素在预期中存在而在实际中不存在
         for (int i = 0; i < expected.size(); i++) {
-            String expectedPath = currentPath + "[" + i + "]";
+            String expectedPath = CharSequenceUtil.format(currentPath, i);
             if (matchedPath.contains(expectedPath)) {
                 continue;
             }
             JsonNode expectedjsonNode = expected.get(i);
             JsonNode valueOfExpectedUniqueKey = expectedjsonNode.get(uniqueKey);
-            String expectedIndexString =
-                    CharSequenceUtil.format(indexTemp, uniqueKey, valueOfExpectedUniqueKey, i);
             if (Objects.nonNull(valueOfExpectedUniqueKey)) {
-                result.getBriefDiffs().add(
-                        buildElementNotFoundInActualDiff(expectedPath, valueOfExpectedUniqueKey, expectedjsonNode)
-                );
-                childExpectedJson.set(expectedIndexString, expectedjsonNode);
-                childActualJson.set(
-                        CharSequenceUtil.format(indexTemp, uniqueKey, valueOfExpectedUniqueKey, -1),
-                        null
-                );
+                BriefDiffResult.BriefDiff diff = buildElementNotFoundInActualDiff(expectedPath, valueOfExpectedUniqueKey, expectedjsonNode);
+                result.getBriefDiffs().add(diff);
+                childExpectedJson.set(getUniqueKeyIndex(uniqueKey, i, valueOfExpectedUniqueKey), expectedjsonNode);
+                childActualJson.set(getUniqueKeyNotExist(valueOfExpectedUniqueKey, uniqueKey), null);
             } else {
                 result.getBriefDiffs().add(
                         buildElementNotFoundInActualDiff(actual, expectedPath, expectedjsonNode)
                 );
-                childExpectedJson.set("下标为" + i, expectedjsonNode);
+                childExpectedJson.set(getIndex(i), expectedjsonNode);
             }
         }
         result.setChildExpectedJson(childExpectedJson);
         result.setChildActualJson(childActualJson);
+    }
+
+    private String getIndex(int i) {
+        return CharSequenceUtil.format(INDEX_TEMP, i);
+    }
+
+    private String getUniqueKeyNotExist(JsonNode valueOfActualUniqueKey, String uniqueKey) {
+        return CharSequenceUtil.format(UNIQUE_KEY_NOT_EXIST_TEMP, uniqueKey, valueOfActualUniqueKey);
+    }
+
+    private String getUniqueKeyIndex(String uniqueKey, int i, JsonNode valueOfExpectedUniqueKey) {
+        return CharSequenceUtil.format(UNIQUE_KEY_INDEX_TEMP, uniqueKey, valueOfExpectedUniqueKey, i);
     }
 
     private boolean isWithDisorderPath(CompareParams<ArrayNode> params, String path) {
