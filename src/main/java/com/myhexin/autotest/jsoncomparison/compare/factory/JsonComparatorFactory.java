@@ -11,7 +11,6 @@ import com.myhexin.autotest.jsoncomparison.result.BriefDiffResult;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * JSON对比器的工厂
@@ -22,20 +21,19 @@ import java.util.stream.Collectors;
 @Slf4j
 public final class JsonComparatorFactory {
 
-    private final static Map<JsonNodeType, JsonComparator<? extends JsonNode>> COMPARATOR_MAP =
-            new HashMap<>(8);
+    private static final Map<JsonNodeType, JsonComparator<? extends JsonNode>> COMPARATOR_MAP =
+            new EnumMap<>(JsonNodeType.class);
 
-    private JsonComparatorFactory() {
-
-    }
+    private static final JsonComparatorFactory FACTORY = new JsonComparatorFactory();
 
     public static JsonComparatorFactory build() {
-        return new JsonComparatorFactory();
+        return FACTORY;
     }
 
-    public JsonComparator<? extends JsonNode> getJsonComparator(JsonNodeType nodeType) {
+    @SuppressWarnings("unchecked")
+    public <T extends JsonNode> JsonComparator<T> getJsonComparator(JsonNodeType nodeType) {
         if (COMPARATOR_MAP.get(nodeType) != null) {
-            return COMPARATOR_MAP.get(nodeType);
+            return (JsonComparator<T>) COMPARATOR_MAP.get(nodeType);
         }
         JsonComparator<? extends JsonNode> comparator;
         switch (nodeType) {
@@ -51,18 +49,18 @@ public final class JsonComparatorFactory {
                 break;
         }
         COMPARATOR_MAP.put(nodeType, comparator);
-        return comparator;
+        return (JsonComparator<T>) comparator;
     }
 
     public BriefDiffResult execute(JsonNodeType nodeType, CompareParams<JsonNode> params) {
-        if (params.getExpected().toString().equals(params.getActual().toString())) {
-            return new BriefDiffResult();
-        }
         log.info("开始进行两个Json之间的对比");
         long begin = System.currentTimeMillis();
-        BriefDiffResult result = executeContrast(nodeType, params);
+        BriefDiffResult result = new BriefDiffResult();
+        if (!params.getExpected().toString().equals(params.getActual().toString())) {
+            result = executeContrast(nodeType, params);
+        }
         log.info("当前对比操作完成, 当前两个Json之间的的差异数为: [{}], 当前Json对比耗时: [{}]",
-                result.getBriefDiffs().size(), System.currentTimeMillis() - begin);
+                result.getDiffNum(), System.currentTimeMillis() - begin);
         return result;
     }
 
@@ -73,28 +71,14 @@ public final class JsonComparatorFactory {
      * @param params   当前对比时所必须的参数
      * @return
      */
-    @SuppressWarnings("unchecked")
-    public BriefDiffResult executeContrast(JsonNodeType nodeType, CompareParams params) {
-        if (isIgnorePath(params.getCurrentPath(), params.getConfig().getIgnorePath())) {
-            return null;
+    public BriefDiffResult executeContrast(JsonNodeType nodeType, CompareParams<JsonNode> params) {
+        JsonComparator<JsonNode> comparator = getJsonComparator(nodeType);
+        BriefDiffResult result = new BriefDiffResult();
+        boolean needToCompare = comparator.beforeCompare(params, result);
+        if (needToCompare) {
+            result = comparator.compare(params);
         }
-        JsonComparator<? extends JsonNode> comparator = getJsonComparator(nodeType);
-        comparator.beforeCompare(params);
-        BriefDiffResult result = comparator.compare(params);
-        comparator.afterCompare();
+        comparator.afterCompare(result);
         return result;
-    }
-
-    /**
-     * 是否是需要忽略的path
-     *
-     * @param path        当前path
-     * @param ignorePaths
-     * @return
-     */
-    private boolean isIgnorePath(String path, Set<String> ignorePaths) {
-        path = JsonComparator.cropPath2JmesPath(path);
-        return Objects.nonNull(ignorePaths) && !ignorePaths.isEmpty()
-                && !ignorePaths.contains(path);
     }
 }

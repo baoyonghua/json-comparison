@@ -1,12 +1,13 @@
 package com.myhexin.autotest.jsoncomparison.compare;
 
 import cn.hutool.core.text.CharSequenceUtil;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.myhexin.autotest.jsoncomparison.config.JsonCompareConfig;
 import lombok.Builder;
 import lombok.Data;
 
 import java.io.Serializable;
-import java.util.Objects;
 
 /**
  * 进行Json对比时所必须的参数
@@ -16,7 +17,7 @@ import java.util.Objects;
  */
 @Data
 @Builder
-public class CompareParams<T> implements Serializable {
+public class CompareParams<T extends JsonNode> implements Serializable {
 
     /**
      * 对比Json时需要的配置信息
@@ -26,6 +27,7 @@ public class CompareParams<T> implements Serializable {
     /**
      * 当前路径, 针对于实际的json而言
      */
+    @JsonProperty("current_path")
     private String currentPath;
 
     /**

@@ -1,9 +1,8 @@
 package com.myhexin.autotest.jsoncomparison.config;
 
 
-import lombok.Builder;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 
 import java.io.Serializable;
 import java.util.HashSet;
@@ -22,30 +21,36 @@ public class JsonCompareConfig implements Serializable {
     /**
      * 需要忽略对比的字段路径集合
      */
+    @JsonProperty("ignore_path")
     private Set<String> ignorePath = new HashSet<>();
 
     /**
      * 需要忽略顺序的数组对比路径集合 --> 支持乱序
      */
+    @JsonProperty("array_with_disorder_path")
     private Set<ArrayWithDisorderConfig> arrayWithDisorderPath = new HashSet<>();
 
     /**
      * 需要进行Json转义进行对比的路径集合
      */
-    private Set<ExcapedJson> excapedJsonPath = new HashSet<>();
+    @JsonProperty("escaped_json")
+    private Set<EscapedJson> escapedJsonPath = new HashSet<>();
 
     /**
      * todo 支持字段映射
      */
-    private Set<FieldMapping> feildMappings = new HashSet<>();
+    @JsonProperty("field_mappings")
+    private Set<FieldMapping> fieldMappings = new HashSet<>();
 
     /**
      * 需要忽略容差的路径集合
      */
-    private Set<ToleantConfig> toleantPath = new HashSet<>();
+    @JsonProperty("tolerant_path")
+    private Set<TolerantConfig> tolerantPath = new HashSet<>();
 
     /**
      * 根据路径获取到当前路径所配置的唯一键
+     *
      * @param path
      * @return
      */
@@ -62,11 +67,11 @@ public class JsonCompareConfig implements Serializable {
     }
 
     @Data
-    @Builder
     public static class ArrayWithDisorderConfig implements Serializable {
         /**
          * 当前忽略数组顺序的唯一键
          */
+        @JsonProperty("unique_key")
         private String uniqueKey;
 
         /**
@@ -94,8 +99,7 @@ public class JsonCompareConfig implements Serializable {
     }
 
     @Data
-    @Builder
-    public static class ToleantConfig implements Serializable {
+    public static class TolerantConfig implements Serializable {
 
         /**
          * 路径
@@ -105,17 +109,17 @@ public class JsonCompareConfig implements Serializable {
         /**
          * 容差
          */
-        private String toleant;
+        private String tolerant;
 
         @Override
         public boolean equals(Object o) {
             if (this == o) {
                 return true;
             }
-            if (!(o instanceof ExcapedJson)) {
+            if (!(o instanceof EscapedJson)) {
                 return false;
             }
-            ExcapedJson other = (ExcapedJson) o;
+            EscapedJson other = (EscapedJson) o;
             return Objects.equals(path, other.path);
         }
 
@@ -126,8 +130,7 @@ public class JsonCompareConfig implements Serializable {
     }
 
     @Data
-    @Builder
-    public static class ExcapedJson extends JsonCompareConfig {
+    public static class EscapedJson extends JsonCompareConfig {
         private String path;
 
         @Override
@@ -135,10 +138,10 @@ public class JsonCompareConfig implements Serializable {
             if (this == o) {
                 return true;
             }
-            if (!(o instanceof ExcapedJson)) {
+            if (!(o instanceof EscapedJson)) {
                 return false;
             }
-            ExcapedJson other = (ExcapedJson) o;
+            EscapedJson other = (EscapedJson) o;
             return Objects.equals(path, other.path);
         }
 
@@ -149,7 +152,6 @@ public class JsonCompareConfig implements Serializable {
     }
 
     @Data
-    @Builder
     public static class FieldMapping implements Serializable {
 
         /**
@@ -160,6 +162,7 @@ public class JsonCompareConfig implements Serializable {
         /**
          * 需要进行映射的key
          */
+        @JsonProperty("mapping_key")
         private String mappingKey;
 
         @Override

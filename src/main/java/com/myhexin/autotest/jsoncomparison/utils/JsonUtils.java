@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeType;
 import com.fasterxml.jackson.databind.node.TextNode;
-import com.myhexin.autotest.jsoncomparison.exception.JsonParseException;
 import io.burt.jmespath.Expression;
 import io.burt.jmespath.jackson.JacksonRuntime;
 import lombok.extern.slf4j.Slf4j;

@@ -24,17 +24,23 @@ public class TestJsonCompare {
         JsonNode actual = JsonUtils.getJsonNode(ACTUAL);
         JsonNode excepted = JsonUtils.getJsonNode(EXCEPTED);
         JsonCompareConfig config = new JsonCompareConfig();
-        // 忽略数组顺序
-        JsonCompareConfig.ArrayWithDisorderConfig config2 = JsonCompareConfig.ArrayWithDisorderConfig.builder()
-                .path("root.data.share_price")
-                .uniqueKey("date")
-                .build();
-        JsonCompareConfig.ArrayWithDisorderConfig config3 = JsonCompareConfig.ArrayWithDisorderConfig.builder()
-                .path("root.data.product_price")
-                .uniqueKey("date")
-                .build();
-        HashSet<JsonCompareConfig.ArrayWithDisorderConfig> set = new HashSet<>(Arrays.asList(config2, config3));
-        config.setArrayWithDisorderPath(set);
+        HashSet<JsonCompareConfig.ArrayWithDisorderConfig> disorderConfigs = new HashSet<>();
+        JsonCompareConfig.ArrayWithDisorderConfig disorderConfig = new JsonCompareConfig.ArrayWithDisorderConfig();
+        disorderConfig.setPath("root.data.product_list");
+        disorderConfig.setUniqueKey("product_id");
+
+        JsonCompareConfig.ArrayWithDisorderConfig disorderConfig1 = new JsonCompareConfig.ArrayWithDisorderConfig();
+        disorderConfig1.setPath("root.data.product_price");
+        disorderConfig1.setUniqueKey("date");
+
+        JsonCompareConfig.ArrayWithDisorderConfig disorderConfig2 = new JsonCompareConfig.ArrayWithDisorderConfig();
+        disorderConfig2.setPath("root.data.share_price");
+        disorderConfig2.setUniqueKey("date");
+
+        disorderConfigs.add(disorderConfig);
+        disorderConfigs.add(disorderConfig1);
+        disorderConfigs.add(disorderConfig2);
+        config.setArrayWithDisorderPath(disorderConfigs);
         CompareParams<JsonNode> params = CompareParams.<JsonNode>builder()
                 .actual(actual)
                 .expected(excepted)
@@ -70,21 +76,7 @@ public class TestJsonCompare {
         final String EXCEPTED = ResourceUtil.readUtf8Str("classpath:normal/expected.json");
         JsonNode actual = JsonUtils.getJsonNode(ACTUAL);
         JsonNode excepted = JsonUtils.getJsonNode(EXCEPTED);
-
         JsonCompareConfig config = new JsonCompareConfig();
-        JsonCompareConfig.ArrayWithDisorderConfig arrayWithDisorderConfig = JsonCompareConfig.ArrayWithDisorderConfig.builder()
-                .path("root.data.records1").uniqueKey("legal_person1").build();
-        JsonCompareConfig.FieldMapping fieldMapping = JsonCompareConfig.FieldMapping.builder()
-                .path("root.data.list[*].cate").mappingKey("cate1").build();
-        JsonCompareConfig.FieldMapping fieldMapping1 = JsonCompareConfig.FieldMapping.builder()
-                .path("root.data.records[*].case_info.uriq").mappingKey("uri25").build();
-        HashSet<JsonCompareConfig.ArrayWithDisorderConfig> arrayWithDisorderConfigs = new HashSet<>();
-        HashSet<JsonCompareConfig.FieldMapping> fieldMappings = new HashSet<>();
-        arrayWithDisorderConfigs.add(arrayWithDisorderConfig);
-        fieldMappings.add(fieldMapping);
-        fieldMappings.add(fieldMapping1);
-        config.setArrayWithDisorderPath(arrayWithDisorderConfigs);
-        config.setFeildMappings(fieldMappings);
         CompareParams<JsonNode> params = CompareParams.<JsonNode>builder()
                 .actual(actual)
                 .expected(excepted)

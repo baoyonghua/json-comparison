@@ -11,11 +11,13 @@ import com.myhexin.autotest.jsoncomparison.compare.impl.JsonBasicComparator;
 import com.myhexin.autotest.jsoncomparison.result.BriefDiffResult;
 import org.junit.Test;
 
+import java.util.List;
+
 /**
  * @author baoyh
  * @since 2023/6/25
  */
-public class TestJsonBasicCompartor {
+public class TestJsonBasicCompactor {
 
     @Test
     public void testNull() {

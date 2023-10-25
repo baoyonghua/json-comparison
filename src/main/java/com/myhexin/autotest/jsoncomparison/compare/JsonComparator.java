@@ -3,10 +3,9 @@ package com.myhexin.autotest.jsoncomparison.compare;
 import cn.hutool.core.text.CharSequenceUtil;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.myhexin.autotest.jsoncomparison.result.BriefDiffResult;
-import org.json.JSONException;
-import org.skyscreamer.jsonassert.JSONAssert;
 
-import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 
 /**
  * JSON对比器
@@ -21,12 +20,18 @@ public interface JsonComparator<T extends JsonNode> {
 
     String SPLIT_POINT = ".";
 
+    String REGEX = "\\[\\d+\\]";
+
+    String ARRAY_REPLACEMENT = "[*]";
+
     /**
      * 在对比之前进行一些操作
      *
      * @param params json对比所需要的参数
+     * @param result
+     * @return 是否需要进行对比
      */
-    void beforeCompare(CompareParams<?> params);
+    boolean beforeCompare(CompareParams<T> params, BriefDiffResult result);
 
     /**
      * 执行对比
@@ -38,8 +43,22 @@ public interface JsonComparator<T extends JsonNode> {
 
     /**
      * 在对比之后进行一些操作
+     * @param result
      */
-    void afterCompare();
+    void afterCompare(BriefDiffResult result);
+
+    /**
+     * 是否是需要忽略的path
+     *
+     * @param path        当前path
+     * @param ignorePaths
+     * @return
+     */
+    static boolean isIgnorePath(String path, Set<String> ignorePaths) {
+        path = JsonComparator.cropPath2JmesPath(path);
+        return Objects.nonNull(ignorePaths) && !ignorePaths.isEmpty()
+                && ignorePaths.contains(path);
+    }
 
     /**
      * 将Path转换为实际的jmesPath

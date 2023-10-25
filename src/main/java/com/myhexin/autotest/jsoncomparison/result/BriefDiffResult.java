@@ -2,13 +2,8 @@ package com.myhexin.autotest.jsoncomparison.result;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.myhexin.autotest.jsoncomparison.compare.enums.DiffEnum;
 import lombok.Builder;
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,11 +21,18 @@ public class BriefDiffResult implements Serializable {
     @JsonProperty("brief_diffs")
     private List<BriefDiff> briefDiffs = new ArrayList<>();
 
+    /**
+     * 差异数
+     */
+    @JsonProperty("diff_num")
+    private Integer diffNum = 0;
+
     @JsonProperty("child_actual_json")
     private JsonNode childActualJson;
 
     @JsonProperty("child_expected_json")
     private JsonNode childExpectedJson;
+
 
     @Data
     @Builder
