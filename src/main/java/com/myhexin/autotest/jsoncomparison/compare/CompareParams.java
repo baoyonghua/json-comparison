@@ -17,6 +17,7 @@ import java.io.Serializable;
  */
 @Data
 @Builder
+@SuppressWarnings("all")
 public class CompareParams<T extends JsonNode> implements Serializable {
 
     /**
@@ -25,7 +26,7 @@ public class CompareParams<T extends JsonNode> implements Serializable {
     private JsonCompareConfig config;
 
     /**
-     * 当前路径, 针对于实际的json而言
+     * 当前路径, 针对于实际的json而言 actual
      */
     @JsonProperty("current_path")
     private String currentPath;

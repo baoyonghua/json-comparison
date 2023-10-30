@@ -1,21 +1,20 @@
-package com.myhexin.autotest.jsoncomparison.compare;
+package com.myhexin.autotest.jsoncomparison.compare.factory;
 
 import cn.hutool.core.text.CharSequenceUtil;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeType;
 import com.fasterxml.jackson.databind.ser.DefaultSerializerProvider;
+import com.myhexin.autotest.jsoncomparison.compare.CompareParams;
 import com.myhexin.autotest.jsoncomparison.compare.constant.CompareMessageConstant;
 import com.myhexin.autotest.jsoncomparison.compare.enums.DiffEnum;
-import com.myhexin.autotest.jsoncomparison.compare.factory.JsonComparatorFactory;
 import com.myhexin.autotest.jsoncomparison.config.JsonCompareConfig;
 import com.myhexin.autotest.jsoncomparison.result.BriefDiffResult;
 import com.myhexin.autotest.jsoncomparison.utils.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigDecimal;
-import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 
 
 /**
@@ -41,11 +40,16 @@ public abstract class AbstractJsonComparator<T extends JsonNode> implements Json
     public boolean beforeCompare(CompareParams<T> params, BriefDiffResult result) {
         if (CharSequenceUtil.isBlank(params.getCurrentPath())) {
             params.setCurrentPath(ROOT_PATH);
-        } else if (!params.getCurrentPath().startsWith(JsonComparator.ROOT_PATH)) {
+        }
+        if (!params.getCurrentPath().startsWith(JsonComparator.ROOT_PATH)) {
             params.setCurrentPath(ROOT_PATH + SPLIT_POINT + params.getCurrentPath());
         }
-        if (JsonComparator.isIgnorePath(params.getCurrentPath(), params.getConfig().getIgnorePath())) {
+        if (params.getConfig().isIgnorePath(params.getCurrentPath())) {
             log.info("当前路径{}配置了无需对比", params.getCurrentPath());
+            return false;
+        }
+        // 直接先进行一波简单对比，如果一致则不需要进行对比
+        if (params.getExpected().toString().equals(params.getActual().toString())) {
             return false;
         }
         return isSameJsonNodeType(params, result);
@@ -83,8 +87,8 @@ public abstract class AbstractJsonComparator<T extends JsonNode> implements Json
             }
             return Optional.of(
                     BriefDiffResult.BriefDiff.builder()
-                            .actual(actual.asText())
-                            .expected(expected.asText())
+                            .actual(actual.toString())
+                            .expected(expected.toString())
                             .type(diffEnum.getType())
                             .msg(diffEnum.getMsg())
                             .diffKey(path)
@@ -121,31 +125,43 @@ public abstract class AbstractJsonComparator<T extends JsonNode> implements Json
      * 支持容差的对比
      *
      * @param params
+     * @param tolerantConfig
      * @param actualText
      * @param expectedText
      * @return
      */
-    protected Optional<BriefDiffResult.BriefDiff> tolerantCompare(
+    protected Optional<BriefDiffResult> tolerantCompare(
             CompareParams<JsonNode> params,
+            JsonCompareConfig.TolerantConfig tolerantConfig,
             String actualText,
             String expectedText
     ) {
         BigDecimal actualNumber = new BigDecimal(actualText);
         BigDecimal expectedNumber = new BigDecimal(expectedText);
         String currentPath = params.getCurrentPath();
-        for (JsonCompareConfig.TolerantConfig tolerantConfig : params.getConfig().getTolerantPath()) {
-            String tolerantConfigPath = tolerantConfig.getPath();
-            if (tolerantConfigPath.equals(currentPath)
-                    || tolerantConfigPath.replaceAll(REGEX, ARRAY_REPLACEMENT).equals(currentPath)) {
-                log.debug("当前路径[{}]配置了允许容差, 允许的范围为: {}", currentPath, tolerantConfig.getTolerant());
-                BigDecimal tolerant = new BigDecimal(tolerantConfig.getTolerant());
-                BigDecimal max = actualNumber.add(tolerant);
-                BigDecimal min = actualNumber.subtract(tolerant);
-                if (max.compareTo(expectedNumber) < 0 || min.compareTo(expectedNumber) > 0) {
-                    BriefDiffResult.BriefDiff diff =
-                            buildValueUnEqualsWithTolerant(currentPath, actualText, expectedText, tolerant);
-                    return Optional.of(diff);
-                }
+        if (Objects.nonNull(tolerantConfig)) {
+            log.debug("当前路径[{}]配置了允许容差, 允许的范围为: {}", currentPath, tolerantConfig.getTolerant());
+            BigDecimal tolerant = new BigDecimal(tolerantConfig.getTolerant());
+            BigDecimal max = actualNumber.add(tolerant);
+            BigDecimal min = actualNumber.subtract(tolerant);
+            if (max.compareTo(expectedNumber) < 0 || min.compareTo(expectedNumber) > 0) {
+                BriefDiffResult.BriefDiff diff = BriefDiffResult.BriefDiff.builder()
+                        .actual(actualText)
+                        .expected(expectedText)
+                        .type(DiffEnum.VALUE_UNEQUALS_WITH_TOLERANT.getType())
+                        .msg(CharSequenceUtil.format(DiffEnum.VALUE_UNEQUALS_WITH_TOLERANT.getMsg(), tolerant))
+                        .diffKey(currentPath)
+                        .reason(String.format(
+                                CompareMessageConstant.VALUE_NOTEQUAL_WITH_TOLERANT,
+                                tolerant,
+                                actualText,
+                                expectedText)
+                        ).build();
+                BriefDiffResult result = new BriefDiffResult();
+                result.getBriefDiffs().add(diff);
+                result.setChildActualJson(params.getActual());
+                result.setChildExpectedJson(params.getExpected());
+                return Optional.of(result);
             }
         }
         return Optional.empty();
@@ -155,67 +171,46 @@ public abstract class AbstractJsonComparator<T extends JsonNode> implements Json
      * 支持对转移的Json进行反转义后进行对比
      *
      * @param params       对比参数
+     * @param escapedJson
      * @param actualText   实际的转义json
      * @param expectedText 预期的转义json
      * @return
      */
-    protected Optional<BriefDiffResult.BriefDiff> escapedJsonCompare(
+    protected Optional<BriefDiffResult> escapedJsonCompare(
             CompareParams<JsonNode> params,
+            JsonCompareConfig.EscapedJson escapedJson,
             String actualText,
             String expectedText
     ) {
-        Set<JsonCompareConfig.EscapedJson> escapedJsons = params.getConfig().getEscapedJsonPath();
         String currentPath = params.getCurrentPath();
-        for (JsonCompareConfig.EscapedJson escapedJson : escapedJsons) {
-            String escapedJsonPath = escapedJson.getPath();
-            if (escapedJsonPath.equals(currentPath)
-                    || escapedJsonPath.replaceAll(REGEX, ARRAY_REPLACEMENT).equals(currentPath)) {
-                // 需要进行转义对比的字符串
-                JsonNode jsonNode1 = JsonUtils.getJsonNode(actualText);
-                JsonNode jsonNode2 = JsonUtils.getJsonNode(expectedText);
-                CompareParams<JsonNode> compareParams = CompareParams.builder()
-                        .actual(jsonNode1)
-                        .expected(jsonNode2)
-                        .config(escapedJson)
+        if (Objects.nonNull(escapedJson)) {
+            // 需要进行转义对比的字符串
+            JsonNode jsonNode1 = JsonUtils.getJsonNode(actualText);
+            JsonNode jsonNode2 = JsonUtils.getJsonNode(expectedText);
+            CompareParams<JsonNode> compareParams = CompareParams.builder()
+                    .actual(jsonNode1)
+                    .expected(jsonNode2)
+                    .config(escapedJson)
+                    .build();
+            BriefDiffResult diffResult = COMPARATOR_FACTORY.executeContrast(jsonNode1.getNodeType(), compareParams);
+            if (diffResult != null && !diffResult.getBriefDiffs().isEmpty()) {
+                BriefDiffResult.BriefDiff diff = BriefDiffResult.BriefDiff.builder()
+                        .actual(actualText)
+                        .expected(expectedText)
+                        .type(DiffEnum.ESCAPED_COMPARE_NOT_EQUALS.getType())
+                        .msg(DiffEnum.ESCAPED_COMPARE_NOT_EQUALS.getMsg())
+                        .diffKey(currentPath)
+                        .reason(CompareMessageConstant.ESCAPED_COMPARE_NOT_EQUALS)
+                        .subDiffs(diffResult.getBriefDiffs())
                         .build();
-                BriefDiffResult diffResult = COMPARATOR_FACTORY.executeContrast(jsonNode1.getNodeType(), compareParams);
-                if (diffResult != null && !diffResult.getBriefDiffs().isEmpty()) {
-                    return Optional.of(buildEscapedCompareNotEqualsDiff(
-                            currentPath, actualText, expectedText, diffResult.getBriefDiffs()
-                    ));
-                }
+                BriefDiffResult result = new BriefDiffResult();
+                result.getBriefDiffs().add(diff);
+                result.setChildActualJson(diffResult.getChildActualJson());
+                result.setChildExpectedJson(diffResult.getChildExpectedJson());
+                return Optional.of(result);
             }
         }
         return Optional.empty();
     }
 
-    private BriefDiffResult.BriefDiff buildEscapedCompareNotEqualsDiff(
-            String currentPath, String actualText, String expectedText, List<BriefDiffResult.BriefDiff> subDiffs) {
-        return BriefDiffResult.BriefDiff.builder()
-                .actual(actualText)
-                .expected(expectedText)
-                .type(DiffEnum.ESCAPED_COMPARE_NOT_EQUALS.getType())
-                .msg(DiffEnum.ESCAPED_COMPARE_NOT_EQUALS.getMsg())
-                .diffKey(currentPath)
-                .reason(CompareMessageConstant.ESCAPED_COMPARE_NOT_EQUALS)
-                .subDiffs(subDiffs)
-                .build();
-    }
-
-    private BriefDiffResult.BriefDiff buildValueUnEqualsWithTolerant(
-            String currentPath, String actualText, String expectedText, BigDecimal tolerant
-    ) {
-        return BriefDiffResult.BriefDiff.builder()
-                .actual(actualText)
-                .expected(expectedText)
-                .type(DiffEnum.VALUE_UNEQUALS_WITH_TOLERANT.getType())
-                .msg(CharSequenceUtil.format(DiffEnum.VALUE_UNEQUALS_WITH_TOLERANT.getMsg(), tolerant))
-                .diffKey(currentPath)
-                .reason(String.format(
-                        CompareMessageConstant.VALUE_NOTEQUAL_WITH_TOLERANT,
-                        tolerant,
-                        actualText,
-                        expectedText)
-                ).build();
-    }
 }

@@ -3,10 +3,9 @@ package com.myhexin.autotest.jsoncomparison.compare.factory;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeType;
 import com.myhexin.autotest.jsoncomparison.compare.CompareParams;
-import com.myhexin.autotest.jsoncomparison.compare.JsonComparator;
-import com.myhexin.autotest.jsoncomparison.compare.impl.JsonArrayComparator;
-import com.myhexin.autotest.jsoncomparison.compare.impl.JsonBasicComparator;
-import com.myhexin.autotest.jsoncomparison.compare.impl.JsonObjectComparator;
+import com.myhexin.autotest.jsoncomparison.compare.factory.impl.JsonArrayComparator;
+import com.myhexin.autotest.jsoncomparison.compare.factory.impl.JsonBasicComparator;
+import com.myhexin.autotest.jsoncomparison.compare.factory.impl.JsonObjectComparator;
 import com.myhexin.autotest.jsoncomparison.result.BriefDiffResult;
 import lombok.extern.slf4j.Slf4j;
 
@@ -30,6 +29,17 @@ public final class JsonComparatorFactory {
         return FACTORY;
     }
 
+    private JsonComparatorFactory() {
+
+    }
+
+    /**
+     * 根据Json类型来获取对应的对比器
+     *
+     * @param nodeType
+     * @param <T>
+     * @return
+     */
     @SuppressWarnings("unchecked")
     public <T extends JsonNode> JsonComparator<T> getJsonComparator(JsonNodeType nodeType) {
         if (COMPARATOR_MAP.get(nodeType) != null) {
@@ -55,10 +65,7 @@ public final class JsonComparatorFactory {
     public BriefDiffResult execute(JsonNodeType nodeType, CompareParams<JsonNode> params) {
         log.info("开始进行两个Json之间的对比");
         long begin = System.currentTimeMillis();
-        BriefDiffResult result = new BriefDiffResult();
-        if (!params.getExpected().toString().equals(params.getActual().toString())) {
-            result = executeContrast(nodeType, params);
-        }
+        BriefDiffResult result = executeContrast(nodeType, params);
         log.info("当前对比操作完成, 当前两个Json之间的的差异数为: [{}], 当前Json对比耗时: [{}]",
                 result.getDiffNum(), System.currentTimeMillis() - begin);
         return result;

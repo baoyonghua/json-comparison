@@ -2,8 +2,10 @@ package com.myhexin.autotest.jsoncomparison.result;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import lombok.Builder;
 import lombok.Data;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -13,6 +15,7 @@ import java.util.List;
  * @since 2023/6/25
  */
 @Data
+@SuppressWarnings("all")
 public class BriefDiffResult implements Serializable {
 
     /**
@@ -28,10 +31,15 @@ public class BriefDiffResult implements Serializable {
     private Integer diffNum = 0;
 
     @JsonProperty("child_actual_json")
-    private JsonNode childActualJson;
+    private JsonNode childActualJson = JsonNodeFactory.instance.objectNode();
 
     @JsonProperty("child_expected_json")
-    private JsonNode childExpectedJson;
+    private JsonNode childExpectedJson = JsonNodeFactory.instance.objectNode();
+
+    public BriefDiffResult() {
+        briefDiffs = new ArrayList<>();
+        diffNum = 0;
+    }
 
 
     @Data
