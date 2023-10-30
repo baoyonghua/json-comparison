@@ -7,7 +7,7 @@ import com.fasterxml.jackson.databind.node.IntNode;
 import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.myhexin.autotest.jsoncomparison.compare.CompareParams;
-import com.myhexin.autotest.jsoncomparison.compare.impl.JsonBasicComparator;
+import com.myhexin.autotest.jsoncomparison.compare.factory.impl.JsonBasicComparator;
 import com.myhexin.autotest.jsoncomparison.result.BriefDiffResult;
 import org.junit.Test;
 
