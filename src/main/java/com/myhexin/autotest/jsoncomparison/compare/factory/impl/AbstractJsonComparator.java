@@ -1,4 +1,4 @@
-package com.myhexin.autotest.jsoncomparison.compare.factory;
+package com.myhexin.autotest.jsoncomparison.compare.factory.impl;
 
 import cn.hutool.core.text.CharSequenceUtil;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -7,6 +7,8 @@ import com.fasterxml.jackson.databind.ser.DefaultSerializerProvider;
 import com.myhexin.autotest.jsoncomparison.compare.CompareParams;
 import com.myhexin.autotest.jsoncomparison.compare.constant.CompareMessageConstant;
 import com.myhexin.autotest.jsoncomparison.compare.enums.DiffEnum;
+import com.myhexin.autotest.jsoncomparison.compare.factory.JsonComparator;
+import com.myhexin.autotest.jsoncomparison.compare.factory.impl.JsonComparatorFactory;
 import com.myhexin.autotest.jsoncomparison.config.JsonCompareConfig;
 import com.myhexin.autotest.jsoncomparison.result.BriefDiffResult;
 import com.myhexin.autotest.jsoncomparison.utils.JsonUtils;

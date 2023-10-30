@@ -3,7 +3,7 @@ package com.myhexin;
 import cn.hutool.core.io.resource.ResourceUtil;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.myhexin.autotest.jsoncomparison.compare.CompareParams;
-import com.myhexin.autotest.jsoncomparison.compare.factory.JsonComparatorFactory;
+import com.myhexin.autotest.jsoncomparison.compare.factory.impl.JsonComparatorFactory;
 import com.myhexin.autotest.jsoncomparison.config.JsonCompareConfig;
 import com.myhexin.autotest.jsoncomparison.result.BriefDiffResult;
 import com.myhexin.autotest.jsoncomparison.utils.JsonUtils;

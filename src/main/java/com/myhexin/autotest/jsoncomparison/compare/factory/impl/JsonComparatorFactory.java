@@ -1,11 +1,9 @@
-package com.myhexin.autotest.jsoncomparison.compare.factory;
+package com.myhexin.autotest.jsoncomparison.compare.factory.impl;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeType;
 import com.myhexin.autotest.jsoncomparison.compare.CompareParams;
-import com.myhexin.autotest.jsoncomparison.compare.factory.impl.JsonArrayComparator;
-import com.myhexin.autotest.jsoncomparison.compare.factory.impl.JsonBasicComparator;
-import com.myhexin.autotest.jsoncomparison.compare.factory.impl.JsonObjectComparator;
+import com.myhexin.autotest.jsoncomparison.compare.factory.JsonComparator;
 import com.myhexin.autotest.jsoncomparison.result.BriefDiffResult;
 import lombok.extern.slf4j.Slf4j;
 
@@ -78,7 +76,7 @@ public final class JsonComparatorFactory {
      * @param params   当前对比时所必须的参数
      * @return
      */
-    public BriefDiffResult executeContrast(JsonNodeType nodeType, CompareParams<JsonNode> params) {
+     BriefDiffResult executeContrast(JsonNodeType nodeType, CompareParams<JsonNode> params) {
         JsonComparator<JsonNode> comparator = getJsonComparator(nodeType);
         BriefDiffResult result = new BriefDiffResult();
         boolean needToCompare = comparator.beforeCompare(params, result);

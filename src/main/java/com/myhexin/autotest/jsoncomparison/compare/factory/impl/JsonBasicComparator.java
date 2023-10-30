@@ -1,7 +1,6 @@
 package com.myhexin.autotest.jsoncomparison.compare.factory.impl;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.myhexin.autotest.jsoncomparison.compare.factory.AbstractJsonComparator;
 import com.myhexin.autotest.jsoncomparison.compare.CompareParams;
 import com.myhexin.autotest.jsoncomparison.compare.constant.CompareMessageConstant;
 import com.myhexin.autotest.jsoncomparison.compare.enums.DiffEnum;

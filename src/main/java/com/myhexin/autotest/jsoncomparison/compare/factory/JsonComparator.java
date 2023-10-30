@@ -44,27 +44,9 @@ public interface JsonComparator<T extends JsonNode> {
 
     /**
      * 在对比之后进行一些操作
+     *
      * @param result
      */
     void afterCompare(BriefDiffResult result);
-
-    /**
-     * 将Path转换为实际的jmesPath
-     *
-     * @param path 内部path
-     * @return
-     */
-    static String cropPath2JmesPath(String path) {
-        if (CharSequenceUtil.isBlank(path)) {
-            return path;
-        }
-        if (path.length() == ROOT_PATH.length()) {
-            return "";
-        }
-        if (path.startsWith(ROOT_PATH)) {
-            path = path.substring(ROOT_PATH.length() + 1);
-        }
-        return path;
-    }
 
 }
